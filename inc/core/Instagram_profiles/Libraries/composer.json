@@ -1,0 +1,6 @@
+{
+    "require": {
+        "phpseclib/phpseclib": "~3.0",
+        "symfony/process": "4.4.44"
+    }
+}
