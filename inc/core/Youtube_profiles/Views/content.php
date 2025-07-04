@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
 <div class="col-custom">
 	<form>
 	<div class="card mb-4">
@@ -9,18 +10,15 @@
 		<div class="card-body pt-3 check-wrap-all">
 			<div class="m-b-25">
                 <div class="input-group input-group-solid">
-                    <input type="text" class="form-control search-input" data-search="search-<?php _ec( $config['id'] )?>" placeholder="<?php _e("Search")?>">
-                    <span class="input-group-text"><i class="fad fa-search fs-18"></i></span>
                     <div class="input-group-append m-l-1">
                         <a class="btn border-start rounded-0">
                             <div class="form-check p-l-0">
                                 <input class="form-check-input check-box-all" type="checkbox" id="checkAll">
-                                <label class="form-check-label" for="checkAll"></label> 
+                                <label class="form-check-label" for="checkAll"></label>
                             </div>
                         </a>
-
                     </div>
-                    <a 
+                    <a
                     	class="btn btn-bg-light btn-color-danger border-start actionMultiItem" 
                     	href="<?php _e( get_module_url('delete') )?>" 
                     	data-confirm="<?php _e('Are you sure to delete this items?')?>" 
@@ -37,8 +35,8 @@
 					<?php foreach ($accounts as $key => $value): ?>
 						<div class="search-<?php _ec( $config['id'] )?>">
 							<div class="d-flex flex-stack">
-								<div class="symbol symbol-45px me-3">
-									<img src="<?php _ec( get_file_url($value->avatar) )?>" class="align-self-center" alt="">
+                                <div class="symbol symbol-45px me-3 flex items-center justify-center">
+                                    <i class="ri-youtube-fill text-sm" style="font-size: 30px; color: #FF0000"></i>
 								</div>
 								<div class="d-flex align-items-center flex-row-fluid flex-wrap">
 									<div class="flex-grow-1 me-2 text-over-all">

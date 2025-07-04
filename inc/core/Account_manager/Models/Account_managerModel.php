@@ -20,6 +20,14 @@ class Account_managerModel extends Model
         }else{
             $configs = get_blocks("block_accounts", false, false);
         }
+        //這裏處理一下 爲了快速上綫，現在僅顯示youtube
+        $configsList = [];
+        foreach ($configs as $config) {
+            if ($config['id'] == "youtube_profiles"){
+                $configsList[] = $config;
+            }
+        }
+        $configs = $configsList;
 
         $items = [];
 
