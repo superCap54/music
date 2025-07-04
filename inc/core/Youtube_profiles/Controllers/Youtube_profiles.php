@@ -1,6 +1,6 @@
 <?php
 namespace Core\Youtube_profiles\Controllers;
-
+//現在是本地調用谷歌 所以開了代理，上到測試生產環境要把代理刪掉
 class Youtube_profiles extends \CodeIgniter\Controller
 {
     public function __construct(){
@@ -17,6 +17,27 @@ class Youtube_profiles extends \CodeIgniter\Controller
         }
 
         $this->client = new \Google\Client();
+        // ==================== 代理设置开始 ====================
+        $proxy = '67.227.42.189:6166';
+        $proxyAuth = 'iggndszq:iguhz2og7m4t';
+
+        try {
+            $httpClient = new \GuzzleHttp\Client([
+                'proxy' => [
+                    'http'  => "http://{$proxyAuth}@{$proxy}",
+                    'https' => "http://{$proxyAuth}@{$proxy}",
+                    'no' => [] // 可选：设置不通过代理的域名/IP
+                ],
+                'verify' => false, // 跳过SSL验证（开发环境用）
+                'timeout' => 30,
+            ]);
+            $this->client->setHttpClient($httpClient);
+        } catch (\Exception $e) {
+            log_message('error', 'Proxy setup failed: ' . $e->getMessage());
+            // 继续执行但无代理
+        }
+        // ==================== 代理设置结束 ====================
+
         $this->client->setAccessType("offline");
         $this->client->setApprovalPrompt("force");
         $this->client->setApplicationName("Youtube");
@@ -127,7 +148,6 @@ class Youtube_profiles extends \CodeIgniter\Controller
         $ids = post('id');
         $team_id = get_team("id");
         $accessToken = json_decode( get_session("YT_AccessToken") , true);
-
         validate('empty', __('Please select a profile to add'), $ids);
 
         $this->client->setAccessToken($accessToken);
@@ -138,9 +158,7 @@ class Youtube_profiles extends \CodeIgniter\Controller
         );
         
         $response = $this->youtube->channels->listChannels($part, $optionalParams);
-
         if(!is_string($response)){
-
             if(!empty($response->items))
             {
                 foreach ($response->items as $key => $row)
@@ -148,9 +166,10 @@ class Youtube_profiles extends \CodeIgniter\Controller
                     if(in_array($row->getId(), $ids, true)){
                         $item = db_get('*', TB_ACCOUNTS, "social_network = 'youtube' AND team_id = '{$team_id}' AND pid = '".$row->getId()."'");
                         if(!$item){
-                            //Check limit number 
+                            //Check limit number
                             check_number_account("youtube", "channel");
-                            $avatar = save_img( $row->getSnippet()->getThumbnails()->getDefault()->getUrl(), WRITEPATH.'avatar/' );
+                            //不save頭像了
+//                            $avatar = save_img( $row->getSnippet()->getThumbnails()->getDefault()->getUrl(), WRITEPATH.'avatar/' );
                             $data = [
                                 'ids' => ids(),
                                 'module' => $this->module,
@@ -163,7 +182,7 @@ class Youtube_profiles extends \CodeIgniter\Controller
                                 'name' => $row->getSnippet()->getLocalized()->getTitle(),
                                 'username' => $row->getSnippet()->getLocalized()->getTitle(),
                                 'token' => json_encode( $accessToken ),
-                                'avatar' => $avatar,
+                                'avatar' => '',
                                 'url' => 'https://www.youtube.com/channel/'.$row->getId(),
                                 'data' => NULL,
                                 'status' => 1,
@@ -175,6 +194,7 @@ class Youtube_profiles extends \CodeIgniter\Controller
                         }else{
                             unlink( get_file_path($item->avatar) );
                             $avatar = save_img( $row->getSnippet()->getThumbnails()->getDefault()->getUrl(), WRITEPATH.'avatar/' );
+                            var_dump($avatar,222222);exit;
                             $data = [
                                 'can_post' => 1,
                                 'pid' => $row->getId(),

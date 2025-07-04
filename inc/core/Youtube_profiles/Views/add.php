@@ -37,7 +37,7 @@
                                 </div>
                             </div>
                         </div>
-                        <?php }?>
+                        <?php }else{ ?>
 
                         <?php if(!empty($result)){?>
 
@@ -66,7 +66,7 @@
                             </div>
                             <?php endforeach ?>
 
-                        <?php } ?>
+                        <?php }} ?>
                         
                         
                     </div>
