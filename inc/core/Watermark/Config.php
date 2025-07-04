@@ -29,5 +29,6 @@ return [
     "css" => [
         'Assets/plugins/ion.rangeSlider/css/ion.rangeSlider.min.css',
         'Assets/css/watermark.css',
-    ]
+    ],
+    'hidden' => true,
 ];

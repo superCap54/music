@@ -6,7 +6,7 @@ class Dashboard extends \CodeIgniter\Controller
     public function __construct(){
         $this->config = parse_config( include realpath( __DIR__."/../Config.php" ) );
     }
-    
+
     public function index( $page = false ) {
         $configs = get_blocks("block_dashboard", false, true);
         $items = [];
@@ -88,7 +88,6 @@ class Dashboard extends \CodeIgniter\Controller
                 });
             }
         }
-
         $data = [
             "title" => $this->config['name'],
             "desc" => $this->config['desc'],

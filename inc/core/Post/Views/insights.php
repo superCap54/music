@@ -612,97 +612,6 @@
         </div>
     </div>
 </main>
-<script id="dateRangeSelector">
-    document.addEventListener('DOMContentLoaded', function() {
-        const languageBtn = document.getElementById('languageBtn');
-        const languageDropdown = document.getElementById('languageDropdown');
-        const currentLang = document.getElementById('currentLang');
-        const langOptions = document.querySelectorAll('.lang-option');
-        const checkIcons = document.querySelectorAll('.lang-option .ri-check-line');
-
-        function updateLanguageUI(lang) {
-            currentLang.textContent = '{{strtoupper(app()->getLocale())}}';
-            checkIcons.forEach(icon => icon.style.opacity = "0");
-            const selectedOption = document.querySelector(`.lang-option[data-lang="${lang}"] .ri-check-line`);
-            if (selectedOption) {
-                selectedOption.style.opacity = "1";
-            }
-        }
-        languageBtn.addEventListener('click', function() {
-            languageDropdown.classList.toggle('hidden');
-            setTimeout(() => {
-                if (!languageDropdown.classList.contains('hidden')) {
-                    languageDropdown.classList.remove('opacity-0', 'translate-y-1');
-                } else {
-                    languageDropdown.classList.add('opacity-0', 'translate-y-1');
-                }
-            }, 0);
-        });
-        langOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                const lang = this.getAttribute('data-lang');
-                updateLanguageUI(lang);
-                languageDropdown.classList.add('hidden');
-            });
-        });
-        document.addEventListener('click', function(e) {
-            if (!languageBtn.contains(e.target) && !languageDropdown.contains(e.target)) {
-                languageDropdown.classList.add('hidden');
-            }
-        });
-        updateLanguageUI('{{app()->getLocale()}}');
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        if (prevBtn && nextBtn) {
-            const rows = document.querySelectorAll('.table-row');
-            const pageInfoElement = document.getElementById('pageInfo');
-            const totalRows = rows.length;
-            const perPage = 5;
-            let currentPage = 1;
-            const totalPages = Math.ceil(totalRows / perPage);
-            // 初始化显示
-            updateDisplay();
-            // 上一页按钮
-            document.getElementById('prevBtn').addEventListener('click', function() {
-                if (currentPage > 1) {
-                    currentPage--;
-                    updateDisplay();
-                }
-            });
-            // 下一页按钮
-            document.getElementById('nextBtn').addEventListener('click', function() {
-                console.log(1111)
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    updateDisplay();
-                }
-            });
-            function updateDisplay() {
-                // 计算显示范围
-                const start = (currentPage - 1) * perPage;
-                const end = start + perPage;
-                // 更新行显示状态
-                rows.forEach((row, index) => {
-                    row.style.display = (index >= start && index < end) ? 'table-row' : 'none';
-                });
-                pageInfoElement.textContent = `Showing ${start + 1}-${Math.min(end, totalRows)} of ${totalRows}`;
-                // 更新按钮状态
-                document.getElementById('prevBtn').disabled = currentPage === 1;
-                document.getElementById('nextBtn').disabled = currentPage === totalPages;
-            }
-        } else {
-            console.error('分页按钮元素未找到');
-        }
-    });
-</script>
-
-
-
-
 <?php
 
 $str_post_succeed = $post_succeed;
@@ -916,5 +825,49 @@ $post_total = "[".$post_total."]";
                 }
             }]
         });
+
+        const prevBtn = $("#prevBtn");
+        const nextBtn = $("#nextBtn");
+        // 调试输出按钮元素
+        console.log('prevBtn:', prevBtn);
+        console.log('nextBtn:', nextBtn);
+        if (prevBtn && nextBtn) {
+            const rows = $('.table-row');
+            const pageInfoElement = $('#pageInfo');
+            const totalRows = rows.length;
+            const perPage = 5;
+            let currentPage = 1;
+            const totalPages = Math.ceil(totalRows / perPage);
+            // 初始化显示
+            updateDisplay();
+            // 上一页按钮
+            $("#prevBtn").click(function(){
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateDisplay();
+                }
+            })
+            $("#nextBtn").click(function(){
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updateDisplay();
+                }
+            })
+            function updateDisplay() {
+                // 计算显示范围
+                const start = (currentPage - 1) * perPage;
+                const end = start + perPage;
+                // 更新行显示状态
+                $('.table-row').each(function(index) {
+                    $(this).css('display', (index >= start && index < end) ? 'table-row' : 'none');
+                });
+                pageInfoElement.text(`Showing ${start + 1}-${Math.min(end, totalRows)} of ${totalRows}`);
+                // 更新按钮状态
+                document.getElementById('prevBtn').disabled = currentPage === 1;
+                document.getElementById('nextBtn').disabled = currentPage === totalPages;
+            }
+        } else {
+            console.error('分页按钮元素未找到');
+        }
     });
 </script>

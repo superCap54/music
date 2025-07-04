@@ -30,5 +30,6 @@ return [
     "css" => [
         'Assets/css/caption.css',
         'Assets/plugins/emojionearea/emojionearea.min.css'
-    ]
+    ],
+    'hidden' => true,
 ];

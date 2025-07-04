@@ -20,5 +20,6 @@ return [
     ],
     'js' => [
         'Assets/js/schedules.js',
-    ]
+    ],
+    'hidden' => true
 ];

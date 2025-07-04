@@ -667,7 +667,10 @@ if(!function_exists('get_blocks')){
                 foreach ($module_paths as $key => $module_path) {
                     $config_path = $module_path . "/Config.php";
                     $config_item = include $config_path;
-
+                    // 关键修改：检查是否包含隐藏参数
+                    if (isset($config_item['hidden']) && $config_item['hidden'] === true) {
+                        continue; // 跳过隐藏模块
+                    }
                     $model_paths = $module_path . "/Models/";
                     $model_files = glob( $model_paths . '*' );
 

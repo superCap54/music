@@ -21,5 +21,6 @@ return [
     'js' => [
         'Assets/plugins/jquery.lazy/jquery.lazy.min.js',
         'Assets/js/file_manager.js'
-    ]
+    ],
+    'hidden' => true,
 ];

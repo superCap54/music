@@ -27,5 +27,6 @@ return [
         'name' => 'Composer',
         'uri' => 'post/cron',
         'style' => '* * * * *',
-    ]
+    ],
+    'hidden'=>false
 ];

@@ -2,8 +2,8 @@
     <div class="sidebar d-flex flex-column align-items-lg-center flex-row-auto h-100">
         <div class="sidebar-logo d-flex flex-column align-items-center flex-column-auto py-3">
             <a href="<?php _ec( base_url("platform") )?>">
-                <img alt="Logo" src="<?php _ec( get_option("website_logo_color", base_url("assets/img/logo-color.svg")) )?>" class="logo-big h-39">
-                <img alt="Logo" src="<?php _ec( get_option("website_logo_mark", base_url("assets/img/logo.svg")) )?>" class="logo-small h-39">
+                <img alt="Logo" src="<?php _ec( get_option("website_logo_color", base_url("assets/img/logo-color.svg")) )?>" class="logo-big" style="height: 50px;">
+                <img alt="Logo" src="<?php _ec( get_option("website_logo_mark", base_url("assets/img/logo.svg")) )?>" class="logo-small" style="height: 50px;">
 
             </a>
         </div>
@@ -12,7 +12,7 @@
             <ul class="nav flex-column">
                 <?php 
                 $request = \Config\Services::request();
-                $top_sidebar = $request->top_sidebar; 
+                $top_sidebar = $request->top_sidebar;
                 ?>
 
                 <?php foreach ($top_sidebar as $key => $menus): ?>

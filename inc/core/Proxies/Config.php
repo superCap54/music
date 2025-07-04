@@ -14,5 +14,6 @@ return [
         'type' => 'top',
         'position' => 900,
         'name' => 'Proxies',
-    ]
+    ],
+    'hidden' =>true,
 ];

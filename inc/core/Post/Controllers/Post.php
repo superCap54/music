@@ -8,7 +8,7 @@ class Post extends \CodeIgniter\Controller
         $this->model = new \Core\Post\Models\PostModel();
         $this->account_manager_model = new \Core\Account_manager\Models\Account_managerModel();
     }
-    
+
     public function index( $page = false ) {
         $post_id = get("post_id");
         $team_id = get_team("id");
@@ -71,7 +71,7 @@ class Post extends \CodeIgniter\Controller
                 validate('null', __('Link'), $link);
                 validate('link', '', $link);
                 break;
-            
+
             default:
                 $type = "text";
                 validate('null', __('Caption'), $caption);
@@ -142,7 +142,7 @@ class Post extends \CodeIgniter\Controller
                 $data['time_post'] = NULL;
                 $data['repost_until'] = NULL;
                 break;
-            
+
             default:
                 $data['time_post'] = $time_now;
                 break;
@@ -161,7 +161,7 @@ class Post extends \CodeIgniter\Controller
             $data['social_network'] = $value->social_network;
             $data['category'] = $value->category;
             $data['api_type'] = $value->login_type;
-            
+
             if($post_by == 3){
                 foreach ($time_posts as $time) {
                     $data['time_post'] = (int)timestamp_sql( $time );
@@ -253,31 +253,12 @@ class Post extends \CodeIgniter\Controller
             $daterange = [];
         }
 
-        $data = [
-            "total_media_succeed" => $total_media_succeed,
-            "total_link_succeed" => $total_link_succeed,
-            "total_text_succeed" => $total_text_succeed,
-            "percent_media_succeed" => $percent_media_succeed,
-            "percent_link_succeed" => $percent_link_succeed,
-            "percent_text_succeed" => $percent_text_succeed,
-            "total_succeed" => $total_succeed,
-            "total_failed" => $total_failed,
-            "total_post" => $total_post,
-            "recent_posts" => $recent_posts,
-            "date" => $post_succeed["date"],
-            "post_succeed" => $post_succeed["value"],
-            "post_failed" => $post_failed["value"],
-            "daterange" => $daterange,
-        ];
-
-
 
 
 
 
 
         $dashboardData = ['views'=>'1,254,879','earnings'=>'8,742.35','activeSong'=>'10','countriesReached'=>'42'];
-//        $dashboardData = ['views'=>'0','earnings'=>'0','activeSong'=>'10','countriesReached'=>'0'];
 
         $monthlyData = [
             ['month'=>'January','views'=>'88,543','earnings'=>'211114.56'],
@@ -347,7 +328,7 @@ class Post extends \CodeIgniter\Controller
     {
         $posts = $this->model->get_posts();
 
-        if(!$posts){ 
+        if(!$posts){
             _ec("Empty schedule");
             exit(0);
         }
