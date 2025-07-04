@@ -269,7 +269,78 @@ class Post extends \CodeIgniter\Controller
             "post_failed" => $post_failed["value"],
             "daterange" => $daterange,
         ];
-        return view( 'Core\Post\Views\insights', $data );
+
+
+
+
+
+
+
+        $dashboardData = ['views'=>'1,254,879','earnings'=>'8,742.35','activeSong'=>'10','countriesReached'=>'42'];
+//        $dashboardData = ['views'=>'0','earnings'=>'0','activeSong'=>'10','countriesReached'=>'0'];
+
+        $monthlyData = [
+            ['month'=>'January','views'=>'88,543','earnings'=>'211114.56'],
+            ['month'=>'January','views'=>'21,543','earnings'=>'214.56'],
+            ['month'=>'January','views'=>'21,543','earnings'=>'2111114.56'],
+            ['month'=>'January','views'=>'88,543','earnings'=>'211114.56'],
+            ['month'=>'January','views'=>'21,543','earnings'=>'214.56'],
+            ['month'=>'January','views'=>'21,543','earnings'=>'2111114.56'],
+            ['month'=>'January','views'=>'88,543','earnings'=>'211114.56'],
+            ['month'=>'January','views'=>'21,543','earnings'=>'214.56'],
+            ['month'=>'January','views'=>'21,543','earnings'=>'2111114.56'],
+            ['month'=>'January','views'=>'88,543','earnings'=>'211114.56'],
+            ['month'=>'January','views'=>'21,543','earnings'=>'214.56'],
+            ['month'=>'January','views'=>'21,543','earnings'=>'2111114.56'],
+        ];
+
+        $songsDataList = [
+            ['title' => 'Song 1','platform' => 'All Platform','icon'=>'','date'=>'May 15 - Jun 15, 2025','views'=>'384,729','topCountry'=>'United States','earns'=>'2458.92','imgSrc'=>"https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
+            ['title' => 'Song 1','platform' => 'All Platform','icon'=>'','date'=>'May 15 - Jun 15, 2025','views'=>'384,729','topCountry'=>'United Kingdom','earns'=>'2458.92','imgSrc'=>"https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
+            ['title' => 'Song 1','platform' => 'All Platform','icon'=>'','date'=>'May 15 - Jun 15, 2025','views'=>'384,729','topCountry'=>'Germany','earns'=>'2458.92','imgSrc'=>"https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
+            ['title' => 'Song 1','platform' => 'All Platform','icon'=>'','date'=>'May 15 - Jun 15, 2025','views'=>'384,729','topCountry'=>'United States','earns'=>'2458.92','imgSrc'=>"https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
+            ['title' => 'Song 1','platform' => 'All Platform','icon'=>'','date'=>'May 15 - Jun 15, 2025','views'=>'384,729','topCountry'=>'United Kingdom','earns'=>'2458.92','imgSrc'=>"https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
+            ['title' => 'Song 2','platform' => 'All Platform','icon'=>'','date'=>'May 15 - Jun 15, 2025','views'=>'384,729','topCountry'=>'Germany','earns'=>'2458.92','imgSrc'=>"https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
+            ['title' => 'Song 2','platform' => 'All Platform','icon'=>'','date'=>'May 15 - Jun 15, 2025','views'=>'384,729','topCountry'=>'United States','earns'=>'2458.92','imgSrc'=>"https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
+            ['title' => 'Song 2','platform' => 'All Platform','icon'=>'','date'=>'May 15 - Jun 15, 2025','views'=>'384,729','topCountry'=>'United Kingdom','earns'=>'2458.92','imgSrc'=>"https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
+            ['title' => 'Song 2','platform' => 'All Platform','icon'=>'','date'=>'May 15 - Jun 15, 2025','views'=>'384,729','topCountry'=>'Germany','earns'=>'2458.92','imgSrc'=>"https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
+            ['title' => 'Song 2','platform' => 'All Platform','icon'=>'','date'=>'May 15 - Jun 15, 2025','views'=>'384,729','topCountry'=>'Germany','earns'=>'2458.92','imgSrc'=>"https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
+        ];
+        $countryList = [
+            ['countryName'=>'United States','value'=>'458325','color'=>'#ff7a00'],
+            ['countryName'=>'United Kingdom','value'=>'287192','color'=>'#00b4ff'],
+            ['countryName'=>'Germany','value'=>'198745','color'=>'#64ffda'],
+            ['countryName'=>'Canada','value'=>'156387','color'=>'#ff00ff'],
+            ['countryName'=>'Other','value'=>'156387','color'=>'#fff012'],
+        ];
+        $songsList = [
+            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3','title' => 'Song 1','isrc'=>'QZES72032915','fileExtension'=>pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
+            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/2.wav','title' => 'Song 2','isrc'=>'QZES99032915','fileExtension'=>pathinfo("http://localhost/music/2.wav", PATHINFO_EXTENSION)],
+            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3','title' => 'Song 1','isrc'=>'QZES72032915','fileExtension'=>pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
+            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3','title' => 'Song 1','isrc'=>'QZES72032915','fileExtension'=>pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
+            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3','title' => 'Song 1','isrc'=>'QZES72032915','fileExtension'=>pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
+            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3','title' => 'Song 1','isrc'=>'QZES72032915','fileExtension'=>pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
+            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3','title' => 'Song 1','isrc'=>'QZES72032915','fileExtension'=>pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
+            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3','title' => 'Song 1','isrc'=>'QZES72032915','fileExtension'=>pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
+            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3','title' => 'Song 1','isrc'=>'QZES72032915','fileExtension'=>pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
+            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3','title' => 'Song 1','isrc'=>'QZES72032915','fileExtension'=>pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)]
+        ];
+        $assignData = ['songsList'=>$songsList,'countryList'=>$countryList,'songsDataList'=>$songsDataList,'dashboardData'=>$dashboardData,'monthlyData'=>$monthlyData,
+            "total_media_succeed" => $total_media_succeed,
+            "total_link_succeed" => $total_link_succeed,
+            "total_text_succeed" => $total_text_succeed,
+            "percent_media_succeed" => $percent_media_succeed,
+            "percent_link_succeed" => $percent_link_succeed,
+            "percent_text_succeed" => $percent_text_succeed,
+            "total_succeed" => $total_succeed,
+            "total_failed" => $total_failed,
+            "total_post" => $total_post,
+            "recent_posts" => $recent_posts,
+            "date" => $post_succeed["date"],
+            "post_succeed" => $post_succeed["value"],
+            "post_failed" => $post_failed["value"]
+        ];
+        return view( 'Core\Post\Views\insights', $assignData);
     }
 
     public function cron()

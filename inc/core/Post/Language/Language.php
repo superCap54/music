@@ -60,4 +60,8 @@
   'Unknow error' => 'Unknow error',
   'Customize system interface' => 'Customize system interface',
   'Composer' => 'Composer',
+  'total plays' => 'total plays',
+  'total earnings' => 'total earnings',
+  'active songs' => 'active songs',
+  'countries reached' => 'countries reached',
 );
