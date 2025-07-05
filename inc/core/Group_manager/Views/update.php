@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
 <div class="container my-5">
 	<form class="actionForm" action="<?php _ec( get_module_url("save/".uri("segment", 4)) )?>" method="POST" data-redirect="<?php _ec( get_module_url() )?>">
 		<div class="card m-b-25 mw-800 m-auto">
@@ -43,9 +44,9 @@
 
 										<div class="group-profiles">
 											<label class="am-choice-item d-flex flex-stack" for="am_<?php _ec($value->id)?>" data-account='<?php _ec( json_encode( $value ) )?>' >
-												<div class="symbol symbol-35px px-3 py-2">
-													<img src="<?php _ec( get_file_url($value->avatar) )?>" class="align-self-center" alt="">
-												</div>
+                                                <div class="symbol symbol-45px me-3 flex items-center justify-center">
+                                                    <i class="ri-youtube-fill text-sm" style="font-size: 30px; color: #FF0000"></i>
+                                                </div>
 												<div class="d-flex align-items-center flex-row-fluid flex-wrap">
 													<div class="flex-grow-1 me-2 text-over-all">
 														<div class="text-gray-800 text-hover-primary fs-12 fw-bold text-over"><?php _e($value->name)?></div>

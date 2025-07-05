@@ -14,5 +14,6 @@ return [
         'type' => 'top',
         'position' => 10000,
         'name' => 'Drafts',
-    ]
+    ],
+    'hidden'=>true,
 ];

@@ -6,9 +6,6 @@
 	</div>
 	<ul class="fm-mini-option d-flex align-items-center overflow-auto">
 		<li class="text-nowrap">
-			<a href="javascript:void(0);" class="px-3 py-2 d-block btn text-gray-700 btn-active-light btnOpenFileManager" data-select-multi="<?php _ec($select_multi)?>" data-type="<?php _ec($type)?>" data-id="<?php _ec( $id )?>" data-name="<?php _ec( $name )?>"><i class="fad fa-folder-open"></i> <span class="fs-12"><?php _e("File manager")?></span></a>
-		</li>
-		<li class="text-nowrap">
 			<button type="button" class="px-3 py-2 d-block btn btn-active-light fileinput-button">
                 <i class="fad fa-upload me-0 pe-0 text-gray-600 fs-14"></i>
                 <input id="upload_custom_<?php _ec( $name )?>" type="file" name="files[]" multiple="">
