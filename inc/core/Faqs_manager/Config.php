@@ -14,5 +14,6 @@ return [
         'type' => 'top',
         'position' => 3000,
         'name' => 'FAQs',
-    ]
+    ],
+    'hidden' => true,
 ];
