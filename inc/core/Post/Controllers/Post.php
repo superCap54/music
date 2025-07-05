@@ -27,7 +27,8 @@ class Post extends \CodeIgniter\Controller
             "desc" => $this->config['desc'],
             "config" => $this->config,
             "post" => json_encode($post),
-            "content" => view('Core\Post\Views\composer', ['frame_posts' => $request->block_frame_posts, "post" => $post, "caption" => $caption ])
+//            "content" => view('Core\Post\Views\composer', ['frame_posts' => $request->block_frame_posts, "post" => $post, "caption" => $caption ])
+            "content" => view('Core\Post\Views\make')
         ];
 
         return view('Core\Post\Views\index', $data);
@@ -178,7 +179,9 @@ class Post extends \CodeIgniter\Controller
         $validator = $this->model->validator($list_data);
 
         $social_can_post = json_decode($validator["can_post"]);
+
         if( ($skip_validate && !empty($social_can_post)) || $validator["status"] == "success" ){
+
             $result = $this->model->post($list_data, $social_can_post);
             ms($result);
         }

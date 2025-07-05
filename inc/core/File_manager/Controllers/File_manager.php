@@ -221,7 +221,6 @@ class File_manager extends \CodeIgniter\Controller
                 //'ext_in[files,'.$this->extensions.']'
             ],
         ]);
-
         if(!$check_mime){
             ms([
                 "status" => "error",
