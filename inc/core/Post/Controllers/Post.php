@@ -74,6 +74,52 @@ class Post extends \CodeIgniter\Controller
 
     public function update_workflow_status()
     {
+        // 验证请求方法必须是POST
+        if ($this->request->getMethod() !== 'post') {
+            return $this->response->setStatusCode(405)->setJSON([
+                'success' => false,
+                'message' => '仅支持POST请求'
+            ]);
+        }
+        // 验证请求内容类型是JSON或表单数据
+        $contentType = $this->request->getHeaderLine('Content-Type');
+        if (strpos($contentType, 'application/json') === false &&
+            strpos($contentType, 'application/x-www-form-urlencoded') === false) {
+            return $this->response->setStatusCode(415)->setJSON([
+                'success' => false,
+                'message' => '仅支持JSON或表单格式数据'
+            ]);
+        }
+        // 获取输入数据
+        if (strpos($contentType, 'application/json') !== false) {
+            $json = $this->request->getBody();
+            $data = json_decode($json, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'success' => false,
+                    'message' => '无效的JSON数据'
+                ]);
+            }
+        } else {
+            $data = $this->request->getPost();
+        }
+
+        // 验证必要参数
+        if (empty($data['workflow_id']) || !is_numeric($data['workflow_id'])) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => '无效的工作流ID'
+            ]);
+        }
+
+        // 验证is_active参数是否存在
+        if (!isset($data['is_active'])) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => '缺少is_active参数'
+            ]);
+        }
+
         // 获取原始输入数据
         $json = $this->request->getBody();
         $data = json_decode($json, true);
