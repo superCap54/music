@@ -78,21 +78,6 @@
         transform: translateX(22px);
         background-color: #4A90E2;
     }
-    .tooltip {
-        visibility: hidden;
-        position: absolute;
-        background-color: rgba(255, 255, 255, 0.9);
-        color: #2C3E50;
-        padding: 6px 12px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        font-size: 12px;
-        white-space: nowrap;
-        opacity: 0;
-        transform: translateY(5px);
-        transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
-        z-index: 10;
-    }
     .tooltip-trigger:hover .tooltip {
         visibility: visible;
         opacity: 1;
@@ -111,6 +96,19 @@
         -webkit-appearance: none;
         margin: 0;
     }
+    .workflow-card {
+        transition: all 0.3s ease;
+        transform-origin: top;
+    }
+    .workflow-card.hidden {
+        opacity: 0;
+        transform: scale(0.95);
+        height: 0;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+        border: none;
+    }
 </style>
 <div class="container mx-auto px-4 py-6">
 <!--    <div class="mb-8 flex justify-between items-center">-->
@@ -123,30 +121,30 @@
 <!--        </button>-->
 <!--    </div>-->
     <div class="flex mb-6 space-x-4">
-        <div class="neumorphic-button !rounded-button px-4 py-2 text-gray-800 whitespace-nowrap">All Workflows</div>
-        <div class="neumorphic-button !rounded-button px-4 py-2 text-gray-500 whitespace-nowrap">Active</div>
-        <div class="neumorphic-button !rounded-button px-4 py-2 text-gray-500 whitespace-nowrap">Paused</div>
+        <div class="neumorphic-button !rounded-button px-4 py-2 text-gray-800 whitespace-nowrap filter-btn" data-filter="all">All Workflows</div>
+        <div class="neumorphic-button !rounded-button px-4 py-2 text-gray-500 whitespace-nowrap filter-btn" data-filter="active">Active</div>
+        <div class="neumorphic-button !rounded-button px-4 py-2 text-gray-500 whitespace-nowrap filter-btn" data-filter="paused">Paused</div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <!-- Workflow Card 1 -->
-        <div class="neumorphic rounded-2xl" style="padding: 1.5rem;">
+        <?php foreach ($workflows as $workflow){ ?>
+        <div class="neumorphic rounded-2xl workflow-card" style="padding: 1.5rem;" data-status="<?= $workflow['user_is_enabled'] ? 'active' : 'paused' ?>">
             <div class="flex justify-between items-start" style="margin-bottom: 1rem;">
                 <div class="flex items-center gap-2">
                     <div class="w-6 h-6 flex items-center justify-center">
                         <i class="ri-youtube-fill text-[#FF0000]"></i>
                     </div>
-                    <h4 class="font-medium text-gray-800">YouTube Weekly Digest</h4>
+                    <h4 class="font-medium text-gray-800"><?php echo $workflow['name']; ?></h4>
                 </div>
             </div>
-            <p class="text-gray-600 text-sm" style="margin-bottom: 1rem;">Automatically publishes weekly content digests to YouTube channel.</p>
+            <p class="text-gray-600 text-sm" style="margin-bottom: 1rem;"><?php echo $workflow['description']; ?></p>
             <div class="neumorphic-inset flowchart-area rounded-lg flex items-center justify-center" style="padding:1rem;margin-bottom:1.25rem;">
+                <?php if($workflow['image_url']){ ?>
+                    <img src="<?php echo $workflow['image_url']; ?>" alt="<?php echo $workflow['name']; ?>" width="286px" height="196px">
+                <?php }else{ ?>
                 <div class="text-center">
                     <div class="flex justify-center space-x-4" style="margin-bottom: 0.5rem;">
                         <div class="flex items-center justify-center neumorphic-button rounded-full" style="width: 3rem;height: 3rem;">
                             <i class="ri-article-line text-primary text-xl"></i>
-                        </div>
-                        <div class="flex items-center justify-center neumorphic-button rounded-full" style="width: 3rem;height: 3rem;">
-                            <i class="ri-video-line text-primary text-xl"></i>
                         </div>
                     </div>
                     <div class="flex justify-center" style="margin-bottom: 0.5rem;">
@@ -156,7 +154,7 @@
                     </div>
                     <div class="flex justify-center" style="margin-bottom: 0.5rem;">
                         <div class="flex items-center justify-center neumorphic-button rounded-full" style="width: 3rem;height: 3rem;">
-                            <i class="ri-chat-4-line text-primary text-xl"></i>
+                            <i class="ri-scissors-line text-primary text-xl"></i>
                         </div>
                     </div>
                     <div class="flex justify-center" style="margin-bottom: 0.5rem;">
@@ -170,17 +168,23 @@
                         </div>
                     </div>
                 </div>
+                <?php } ?>
             </div>
             <div class="flex justify-between items-center">
                 <div class="flex space-x-2">
                     <button class="configure-btn neumorphic-button !rounded-button px-3 py-1 text-sm text-primary whitespace-nowrap">Configure</button>
                 </div>
                 <div>
-                    <input type="checkbox" id="toggle1" class="toggle-checkbox hidden">
-                    <label for="toggle1" class="toggle-switch block cursor-pointer"></label>
+                    <input type="checkbox"
+                        <?php if($workflow['user_is_enabled']){ echo "checked";} ?>
+                           id="toggle<?php echo $workflow['workflow_id']; ?>"
+                           class="toggle-checkbox hidden"
+                           data-workflow-id="<?php echo $workflow['workflow_id']; ?>">
+                    <label for="toggle<?php echo $workflow['workflow_id']; ?>" class="toggle-switch block cursor-pointer"></label>
                 </div>
             </div>
         </div>
+        <?php } ?>
     </div>
 </div>
 <script id="toggleSwitchInteraction">
@@ -238,4 +242,114 @@
         modal.classList.add('hidden');
         document.body.style.overflow = 'auto';
     }
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取所有相关元素
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const workflowCards = document.querySelectorAll('.workflow-card');
+
+        // 为每个筛选按钮添加点击事件
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+
+                // 更新按钮样式
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('text-gray-800');
+                    btn.classList.add('text-gray-500');
+                });
+                this.classList.remove('text-gray-500');
+                this.classList.add('text-gray-800');
+
+                // 筛选卡片
+                workflowCards.forEach(card => {
+                    const status = card.getAttribute('data-status');
+
+                    switch(filter) {
+                        case 'all':
+                            card.style.display = 'block';
+                            break;
+                        case 'active':
+                            card.style.display = status === 'active' ? 'block' : 'none';
+                            break;
+                        case 'paused':
+                            card.style.display = status === 'paused' ? 'block' : 'none';
+                            break;
+                    }
+                });
+            });
+        });
+
+        // 初始化显示所有工作流
+        document.querySelector('.filter-btn[data-filter="all"]').click();
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggles = document.querySelectorAll('.toggle-checkbox');
+
+        toggles.forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const workflowId = this.getAttribute('data-workflow-id');
+                const isActive = this.checked;
+                const card = this.closest('.neumorphic');
+
+                // 更新UI
+                if (isActive) {
+                    card.style.borderLeft = '3px solid rgba(74, 144, 226, 0.6)';
+                } else {
+                    card.style.borderLeft = 'none';
+                }
+
+                // 发送AJAX请求
+                updateWorkflowStatus(workflowId, isActive);
+            });
+
+            // 初始化状态
+            if (toggle.checked) {
+                const card = toggle.closest('.neumorphic');
+                card.style.borderLeft = '3px solid rgba(74, 144, 226, 0.6)';
+            }
+        });
+
+        function updateWorkflowStatus(workflowId, isActive) {
+            fetch('/post/update_workflow_status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '<?php echo csrf_token(); ?>'
+                },
+                body: JSON.stringify({
+                    workflow_id: workflowId,
+                    is_active: isActive
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.success) {
+                        // 如果服务器返回失败，恢复原来的状态
+                        const toggle = document.querySelector(`#toggle${workflowId}`);
+                        toggle.checked = !isActive;
+                        const card = toggle.closest('.neumorphic');
+                        card.style.borderLeft = isActive ? 'none' : '3px solid rgba(74, 144, 226, 0.6)';
+
+                        alert('Failed to update workflow status: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // 恢复原来的状态
+                    const toggle = document.querySelector(`#toggle${workflowId}`);
+                    toggle.checked = !isActive;
+                    const card = toggle.closest('.neumorphic');
+                    card.style.borderLeft = isActive ? 'none' : '3px solid rgba(74, 144, 226, 0.6)';
+
+                    alert('An error occurred while updating workflow status. Please try again.');
+                });
+        }
+    });
 </script>
