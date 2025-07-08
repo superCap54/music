@@ -17,8 +17,11 @@ class Post extends \CodeIgniter\Controller
         $this->user_id = get_user("id");
     }
 
-    public function index()
+    public function index1()
     {
+        $post_id = get("post_id");
+        $team_id = get_team("id");
+        $caption = get("caption");
         //传参
         $is_enabled = get("is_enabled");
 //      获取能运行的workflows
@@ -60,15 +63,41 @@ class Post extends \CodeIgniter\Controller
 
 //      重新索引数组（如果进行了过滤）
         $workflowsWithStatus = array_values($workflowsWithStatus);
-
+        $post = db_get( "*", TB_POSTS, [ "ids" => $post_id, "team_id" => $team_id ] );
         $data = [
             "title" => $this->config['name'],
             "desc" => $this->config['desc'],
             "config" => $this->config,
+            "post" => json_encode($post),
             "content" => view('Core\Post\Views\make',[
-                'workflows' => $workflowsWithStatus  // 明确指定变量名
+                'workflows' => $workflowsWithStatus,  // 明确指定变量名
+                "post" => $post
             ])
         ];
+        return view('Core\Post\Views\index', $data);
+    }
+
+    public function index( $page = false ) {
+        $post_id = get("post_id");
+        $team_id = get_team("id");
+        $caption = get("caption");
+
+        if($caption != ""){
+            $caption = base64_decode($caption);
+            $caption = preg_replace("/U\+([0-9a-f]{4,5})/mi", '&#x${1}', $caption);
+        }
+
+        $post = db_get( "*", TB_POSTS, [ "ids" => $post_id, "team_id" => $team_id ] );
+
+        $request = \Config\Services::request();
+        $data = [
+            "title" => $this->config['name'],
+            "desc" => $this->config['desc'],
+            "config" => $this->config,
+            "post" => json_encode($post),
+            "content" => view('Core\Post\Views\composer', ['frame_posts' => $request->block_frame_posts, "post" => $post, "caption" => $caption ])
+        ];
+
         return view('Core\Post\Views\index', $data);
     }
 
@@ -315,7 +344,6 @@ class Post extends \CodeIgniter\Controller
         $social_can_post = json_decode($validator["can_post"]);
 
         if (($skip_validate && !empty($social_can_post)) || $validator["status"] == "success") {
-
             $result = $this->model->post($list_data, $social_can_post);
             ms($result);
         }

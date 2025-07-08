@@ -15,5 +15,5 @@ return [
         'position' => 900,
         'name' => 'Proxies',
     ],
-    'hidden' =>true,
+    'hidden' =>false,
 ];

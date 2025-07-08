@@ -172,7 +172,7 @@
             </div>
             <div class="flex justify-between items-center">
                 <div class="flex space-x-2">
-                    <button class="configure-btn neumorphic-button !rounded-button px-3 py-1 text-sm text-primary whitespace-nowrap">Configure</button>
+                    <button class="configure-btn neumorphic-button !rounded-button px-3 py-1 text-sm text-primary whitespace-nowrap" data-content='<?php echo $workflow['config_schema']; ?>'>Configure</button>
                 </div>
                 <div>
                     <input type="checkbox"
@@ -214,24 +214,129 @@
         <button class="absolute right-4 top-4 w-8 h-8 flex items-center justify-center neumorphic-button rounded-full" onclick="closeModal()">
             <i class="ri-close-line text-gray-700"></i>
         </button>
-        <div class="p-6">
-            <div class="aspect-video rounded-xl overflow-hidden mb-6 neumorphic-inset">
-                <img src="https://readdy.ai/api/search-image?query=3D%20render%20of%20a%20modern%20automation%20workflow%20process%20visualization%20with%20connected%20nodes%20and%20flowing%20data%20streams%2C%20clean%20minimal%20design%20with%20soft%20lighting%20and%20subtle%20gradients%2C%20professional%20enterprise%20software%20interface&width=800&height=450&seq=workflow1&orientation=landscape" class="w-full h-full object-cover" alt="Workflow Process">
+
+        <div class="" style="padding: 1.5rem;">
+            <!-- 标题 -->
+            <h3 class="text-xl font-semibold text-gray-800 mb-6">Workflow Configuration</h3>
+
+            <!-- 账号密码区域 -->
+            <div class="mb-8">
+                <h4 class="text-md font-medium text-gray-700" style="margin-bottom: 1rem;">Account Settings</h4>
+                <div class="space-y-4">
+                    <?php echo view_cell('\Core\Account_manager\Controllers\Account_manager::widget', ["account_id" => get_data($post, 'account_id'), "module_permission" => "%s_post"]) ?>
+                </div>
             </div>
-            <div class="text-center">
-                <button class="neumorphic-button !rounded-button px-8 py-3 text-white bg-primary hover:bg-opacity-90 transition-colors" onclick="closeModal()">
-                    Confirm Configuration
-                </button>
+
+            <!-- 动态配置区域 -->
+            <div>
+                <h4 class="text-md font-medium text-gray-700" style="margin-bottom: 1rem;">Workflow Settings</h4>
+                <div id="dynamicConfigContainer" class="space-y-4">
+                    <!-- 这里将通过JavaScript动态渲染config_schema -->
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="mt-8 flex justify-end space-x-3">
+                <button onclick="closeModal()" class="neumorphic-button !rounded-button px-5 py-2 text-gray-600">Cancel</button>
+                <button onclick="saveConfig()" class="neumorphic-button !rounded-button px-5 py-2 bg-primary text-white">Save Configuration</button>
             </div>
         </div>
     </div>
 </div>
 <script id="modalInteraction">
     document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('configureModal');
         const configureBtns = document.querySelectorAll('.configure-btn');
+        const dynamicConfigContainer = document.getElementById('dynamicConfigContainer');
+        const modal = document.getElementById('configureModal');
+
         configureBtns.forEach(btn => {
             btn.addEventListener('click', function() {
+                // 获取并解析配置数据
+                const configData = JSON.parse(this.getAttribute('data-content'));
+
+                // 清空容器
+                dynamicConfigContainer.innerHTML = '';
+
+                // 动态生成表单控件
+                configData.forEach((field, index) => {
+                    const fieldWrapper = document.createElement('div');
+
+                    // 创建标签
+                    const label = document.createElement('label');
+                    label.className = 'block text-sm font-medium text-gray-600 mb-1';
+                    label.textContent = field.name;
+
+                    // 根据类型创建不同的输入控件
+                    let input;
+                    if (field.type === 'text') {
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
+                        input.placeholder = `Enter ${field.name}`;
+                        input.value = field.value || '';
+                    } else if (field.type === 'number') {
+                        input = document.createElement('input');
+                        input.type = 'number';
+                        input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
+                        input.placeholder = `Enter ${field.name}`;
+                        input.value = field.value || '';
+                    } else if (field.type === 'textarea') {
+                        input = document.createElement('textarea');
+                        input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
+                        input.placeholder = `Enter ${field.name}`;
+                        input.value = field.value || '';
+                        input.rows = 3;
+                    } else if (field.type === 'select') {
+                        input = document.createElement('select');
+                        input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
+
+                        // 假设field.options包含选择项
+                        if (field.options && Array.isArray(field.options)) {
+                            field.options.forEach(option => {
+                                const optionElement = document.createElement('option');
+                                optionElement.value = option.value;
+                                optionElement.textContent = option.label;
+                                if (option.value === field.value) {
+                                    optionElement.selected = true;
+                                }
+                                input.appendChild(optionElement);
+                            });
+                        }
+                    } else if (field.type === 'checkbox') {
+                        const checkboxWrapper = document.createElement('div');
+                        checkboxWrapper.className = 'flex items-center';
+
+                        input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.className = 'mr-2';
+                        input.checked = field.value || false;
+
+                        const checkboxLabel = document.createElement('label');
+                        checkboxLabel.className = 'text-sm text-gray-600';
+                        checkboxLabel.textContent = field.name;
+
+                        checkboxWrapper.appendChild(input);
+                        checkboxWrapper.appendChild(checkboxLabel);
+                        fieldWrapper.appendChild(checkboxWrapper);
+                    } else {
+                        // 默认文本输入
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
+                        input.placeholder = `Enter ${field.name}`;
+                        input.value = field.value || '';
+                    }
+
+                    // 如果不是复选框，添加标签和输入控件
+                    if (field.type !== 'checkbox') {
+                        fieldWrapper.appendChild(label);
+                        fieldWrapper.appendChild(input);
+                    }
+
+                    dynamicConfigContainer.appendChild(fieldWrapper);
+                });
+
+                // 显示模态框
                 modal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
             });

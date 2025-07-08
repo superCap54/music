@@ -11,7 +11,25 @@ class Youtube_postModel extends Model
         $client_secret = get_option('youtube_api_secret', '');
         $api_key = get_option('youtube_api_key', '');
 
+        $proxy = '45.41.160.36:6018';
+//        $proxy = '59.37.173.75:35343';
+//        $proxyAuth = 'biechao:biechao';
+        $proxyAuth = 'iggndszq:iguhz2og7m4t';
+        $httpProxy = "http://{$proxyAuth}@{$proxy}";
+
+
         $this->client = new \Google\Client();
+        $this->client->setHttpClient(new \GuzzleHttp\Client([
+            'proxy' => $httpProxy,
+            'verify' => false, // 必须关闭SSL验证
+            'timeout' => 60,
+            'connect_timeout' => 30,
+            'curl' => [
+                CURLOPT_PROXYTYPE => CURLPROXY_HTTP,
+                CURLOPT_HTTPPROXYTUNNEL => true,
+                CURLOPT_PROXYAUTH => CURLAUTH_BASIC
+            ]
+        ]));
         $this->client->setAccessType("offline");
         $this->client->setApprovalPrompt("force");
         $this->client->setApplicationName("Youtube");

@@ -83,13 +83,6 @@ class WorkflowsModel extends Model
 
             $results = $query->getResultArray();
 
-            // 解码JSON字段
-            foreach ($results as &$row) {
-                if (!empty($row['config_schema'])) {
-                    $row['config_schema'] = json_decode($row['config_schema'], true);
-                }
-            }
-
             return $results;
 
         } catch (\Exception $e) {
