@@ -33,14 +33,33 @@ class Proxies extends \CodeIgniter\Controller
                 $pager = \Config\Services::pager();
                 $total = $this->model->get_list_assigned(false);
                 $proxies = db_fetch("*", TB_PROXIES, ["status" => 1, "team_id" => $team_id], "id", "DESC");
+                $proxyMap = [];
+                foreach ($proxies as $proxy) {
+                    $proxyMap[$proxy->id] = $proxy;
+                }
+                // 获取账号数据
+                $accounts = db_fetch("*", TB_ACCOUNTS, ["team_id" => $team_id, "status" => 1], "id", "DESC");
+                $processedAccounts = [];
+                foreach ($accounts as $account) {
+                    $accountData = clone $account;
+                    if (!empty($account->proxy) && isset($proxyMap[$account->proxy])) {
+                        $accountData->proxy_info = $proxyMap[$account->proxy];
+                    } else {
+                        $accountData->proxy_info = null;
+                    }
+                    $processedAccounts[] = $accountData;
+                }
+
 
                 $datatable = [
                     "responsive" => true,
                     "columns" => [
                         "id" => __("ID"),
                         "account_info" =>  __("Account info"),
+                        "social_network" => __("Social network"),
                         "proxy_assigned" => __("Proxy assigned"),
-                        "location" => __("Proxy location")
+                        "location" => __("Proxy location"),
+                        "Status" => __("Status"),
                     ],
                     "total_items" => $total,
                     "per_page" => 50,
@@ -54,7 +73,8 @@ class Proxies extends \CodeIgniter\Controller
                     'pager' => $pager,
                     'datatable'  => $datatable,
                     'proxies'  => $proxies,
-                    'config' => $this->config
+                    'config' => $this->config,
+                    'accounts' => $processedAccounts, // 使用处理后的账号数据
                 ];
 
                 $data['content'] = view('Core\Proxies\Views\list_assigned', $data_content);
@@ -104,6 +124,11 @@ class Proxies extends \CodeIgniter\Controller
     public function ajax_list(){
         $total_items = $this->model->get_list(false);
         $result = $this->model->get_list(true);
+        // 检测每个代理的状态
+        foreach($result as $item) {
+            $item->is_active = $this->model->check_proxy_status($item->proxy);
+        }
+
         $data = [
             "result" => $result
         ];
@@ -270,58 +295,50 @@ class Proxies extends \CodeIgniter\Controller
     public function do_import_proxy(){
         $team_id = get_team("id");
         $team_id = get_team("id");
-        $max_size = 5*1024;
+        $max_size = 50*1024;
         $file_path = "";
 
         if(!empty($_FILES) && is_array($_FILES['files']['name'])){
-            if(empty( $this->request->getFiles() )){
+            $files = $this->request->getFiles();
+            if(empty( $files )){
                 ms([
                     "status" => "error",
                     "message" => __('Cannot found files csv to upload')
                 ]);
             }
+            // 2. 获取文件对象
+            $file = $files['files'][0];
 
-            $check_mime = $this->validate([
-                'files' => [
-                    'uploaded[files]',
-                    'ext_in[files,csv]'
-                ],
-            ]);
-
-            if(!$check_mime){
+            // 3. 手动验证文件后缀名
+            $allowedExts = ['csv', 'xlsx','xls']; // 允许的后缀列表
+            $originalName = $file->getClientName(); // 获取原始文件名
+            $fileExt = strtolower(pathinfo($originalName, PATHINFO_EXTENSION)); // 提取后缀
+            if (!in_array($fileExt, $allowedExts)) {
                 ms([
                     "status" => "error",
                     "message" => "The filetype you are attempting to upload is not allowed"
                 ]);
             }
 
-            $check_size = $this->validate([
-                'files' => [
-                    'uploaded[files]',
-                    'max_size[files,'.$max_size.']'
-                ],
-            ]);
-
-            if(!$check_size){
+            $file_size = $file->getSize();
+            if($max_size < $file_size){
                 ms([
                     "status" => "error",
-                    "message" => __( sprintf("Unable to upload a file larger than %sMB", $maxsize) )
+                    "message" => __( sprintf("Unable to upload a file larger than %sKB, This File %sKB", $max_size,$file_size) )
                 ]);
             }
 
-            if ($file = $this->request->getFiles()) {
-                if( isset( $file['files'] ) ){
-                    foreach($file['files'] as $img) {
-                        if ($img->isValid() && ! $img->hasMoved()) {
-                            $newName = $img->getRandomName();
-                            $img->move(WRITEPATH.'uploads', $newName);
-                            $file_path = WRITEPATH.'uploads/'.$newName;
-                        }
+            if ($files) {
+                if (isset($files['files'])) {
+                    $file = $files['files'][0];
+                    if ($file->isValid() && !$file->hasMoved()) {
+                        $newName = $file->getRandomName();
+                        $file->move(WRITEPATH.'uploads', $newName);
+                        $file_path = WRITEPATH.'uploads/'.$newName;
                     }
                 }
             }
         }
-
         if($file_path == ""){
             ms([
                 "status" => "error",
@@ -333,6 +350,8 @@ class Proxies extends \CodeIgniter\Controller
         $csvFile = $csvReader->readRows();
         $headers = [];
         $proxies = [];
+        $localhostList = [];
+
         foreach($csvFile as $key => $row) {
             if( $key != 0 ){
                 if(is_array($row )){
@@ -343,11 +362,11 @@ class Proxies extends \CodeIgniter\Controller
                     $proxy = str_replace("`", "", $proxy);
                     $proxy = str_replace("\"", "", $proxy);
                     $proxy = trim($proxy);
-
                     //$limit = (int)$row[1];
                 }
-
-                if( $location = proxy_location($proxy) ){
+                $location = proxy_location($proxy);
+                $localhostList[] = $location;
+                if($location){
                     $proxies[] = [
                         "ids" => ids(),
                         "team_id" => get_team("id"),
@@ -371,9 +390,13 @@ class Proxies extends \CodeIgniter\Controller
                 }
             }
         }
-
         if(!empty($proxies)){
             db_insert( TB_PROXIES, $proxies );
+        }else{
+            ms([
+                "status" => "error",
+                "message" => __("CSV内容格式有误")
+            ]);
         }
 
         unlink($file_path);

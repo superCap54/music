@@ -36,7 +36,7 @@
         </div>
     </div>
 </div>
-	
+
 <div class="container my-3">
     <div class="card card-flush">
         <div class="card-body p-0">
@@ -47,10 +47,10 @@
 
                     <?php if ( is_array( get_data($datatable, "columns") ) ): ?>
 
-                        <table 
-                            class="ajax-pages table table align-middle table-row-dashed fs-13 gy-5" 
-                            data-url="<?php _ec( get_module_url("ajax_list_assigned") )?>" 
-                            data-response=".ajax-result" 
+                        <table
+                            class="ajax-pages table table align-middle table-row-dashed fs-13 gy-5"
+                            data-url="<?php _ec( get_module_url("ajax_list_assigned") )?>"
+                            data-response=".ajax-result"
                             data-per-page="<?php _ec( get_data($datatable, "per_page") )?>"
                             data-current-page="<?php _ec( get_data($datatable, "current_page") )?>"
                             data-total-items="<?php _ec( get_data($datatable, "total_items") )?>"
@@ -72,13 +72,52 @@
                                     <?php endforeach ?>
                                 </tr>
                             </thead>
-                            <tbody class="ajax-result"></tbody>
+                            <tbody class="ajax-result">
+                            <?php if (!empty($accounts)): ?>
+                                <?php foreach ($accounts as $account): ?>
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="form-check form-check-sm form-check-custom form-check-solid">
+                                                <input class="form-check-input checkbox-item" type="checkbox" name="ids[]" value="<?php _ec($account->ids)?>">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="d-flex justify-content-start flex-column">
+                                                    <span class="text-dark fw-bolder text-hover-primary" style="cursor:pointer;"><?php _ec( get_data($account, "name") )?></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="d-flex justify-content-start flex-column">
+                                                    <span class="text-dark fw-bolder text-hover-primary" style="cursor:pointer;"><?php _ec( get_data($account, "social_network") )?></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($account->proxy_info)): ?>
+                                                <?php _ec($account->proxy_info->proxy) ?>
+                                            <?php endif ?>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($account->proxy_info)): ?>
+                                                <?php _ec(list_countries($account->proxy_info->location)) ?>
+                                            <?php endif ?>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-light-<?php _ec( $account->status == 1 ? "success" : "danger" )?>"><?php _ec( $account->status == 1 ? "Active" : "Inactive" )?></span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach ?>
+                            <?php endif ?>
+                            </tbody>
                         </table>
 
                     <?php endif ?>
 
                 </div>
-                
+
             <?php endif ?>
 
             <?php if (get_data($datatable, "total_items") != 0): ?>
@@ -89,9 +128,3 @@
     </div>
 </div>
 </form>
-
-<script type="text/javascript">
-    $(function(){
-        Core.ajax_pages();
-    });
-</script>

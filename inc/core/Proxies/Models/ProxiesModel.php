@@ -8,6 +8,31 @@ class ProxiesModel extends Model
         $this->config = parse_config( include realpath( __DIR__."/../Config.php" ) );
     }
 
+    public function check_proxy_status($proxy) {
+        $url = 'https://www.youtube.com';
+        $timeout = 10; // 5秒超时
+
+        try {
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $url,
+                CURLOPT_PROXY => $proxy,
+                CURLOPT_TIMEOUT => $timeout,
+                CURLOPT_CONNECTTIMEOUT => $timeout,
+                CURLOPT_NOBODY => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_FAILONERROR => true // 直接返回false而不是抛出异常
+            ]);
+
+            $success = curl_exec($ch) !== false;
+            curl_close($ch);
+            return $success;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
     public function block_plans(){
         return [
             "tab" => 30,
