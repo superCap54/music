@@ -15,16 +15,20 @@
     </div>
 
     <div class="sp-menu n-scroll sp-menu-two menu menu-column menu-fit menu-rounded menu-title-gray-600 menu-icon-gray-400 menu-state-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500 p-l-20 p-r-20 m-b-12 fw-5">
-
         <?php if( !empty($block_accounts) ){?>
 
             <?php foreach ($block_accounts as $key => $value): ?>
-                
+
                 <?php _ec( $value['data']['button'] )?>
 
             <?php endforeach ?>
 
         <?php }?>
-        
+        <?php if (!$google_drive_status['is_connected']): ?>
+            <a href="http://localhost/account_manager/google_oauth" class="btn btn-outline btn-outline-dashed me-2 mb-2 text-start list-btn-add-account">
+                <i class="fab fa-google-drive" style="color: #36d633;"></i>
+                Add Google drive
+            </a>
+        <?php endif; ?>
     </div>
 </div>

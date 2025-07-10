@@ -2,7 +2,7 @@
 	<div class="row">
 
 		<div class="col-md-12 mb-4">
-			
+
 			<div class="row post-type">
 				<label class="col-4 bg-primary text-light-primary" for="type_media">
 					<div class="d-block d-md-flex d-sm-flex text-center align-items-center flex-row-fluid flex-wrap">
@@ -11,23 +11,23 @@
 						<input id="type_media" type="radio" class="d-none" name="type" value="media" checked>
 					</div>
 				</label>
-				<label class="col-4" for="type_link">
-					<div class="d-block d-md-flex d-sm-flex text-center align-items-center flex-row-fluid flex-wrap">
-						<span class="icon p-r-10"><i class="fad fa-link"></i></span>
-						<span class="text"><?php _e("Link")?></span>
-						<input id="type_link" type="radio" class="d-none" name="type" value="link">
-					</div>
-				</label>
-				<label class="col-4" for="type_text">
-					<div class="d-block d-md-flex d-sm-flex text-center align-items-center flex-row-fluid flex-wrap">
-						<span class="icon p-r-10"><i class="fad fa-align-center"></i></span>
-						<span class="text"><?php _e("Text")?></span>
-						<input id="type_text" type="radio" class="d-none" name="type" value="text">
-					</div>
-				</label>
+<!--				<label class="col-4" for="type_link">-->
+<!--					<div class="d-block d-md-flex d-sm-flex text-center align-items-center flex-row-fluid flex-wrap">-->
+<!--						<span class="icon p-r-10"><i class="fad fa-link"></i></span>-->
+<!--						<span class="text">--><?php //_e("Link")?><!--</span>-->
+<!--						<input id="type_link" type="radio" class="d-none" name="type" value="link">-->
+<!--					</div>-->
+<!--				</label>-->
+<!--				<label class="col-4" for="type_text">-->
+<!--					<div class="d-block d-md-flex d-sm-flex text-center align-items-center flex-row-fluid flex-wrap">-->
+<!--						<span class="icon p-r-10"><i class="fad fa-align-center"></i></span>-->
+<!--						<span class="text">--><?php //_e("Text")?><!--</span>-->
+<!--						<input id="type_text" type="radio" class="d-none" name="type" value="text">-->
+<!--					</div>-->
+<!--				</label>-->
 			</div>
 		</div>
-		
+
 		<div class="post-tab filemanager-tab col-lg-4 col-md-6 col-sm-12 d-lg-block d-md-block d-sm-none d-xs-none d-none">
 			<?php echo view_cell('\Core\File_manager\Controllers\File_manager::widget') ?>
 		</div>
@@ -43,7 +43,7 @@
 					<div class="mb-3">
 						<?php echo view_cell('\Core\Account_manager\Controllers\Account_manager::widget', ["account_id" => get_data($post, 'account_id'), "module_permission" => "%s_post"]) ?>
 					</div>
-					
+
 					<div class="post-type-box d-none" data-type="link">
 						<div class="input-group input-group-solid bg-white border mb-3">
 			                <input type="text" class="form-control" name="link" placeholder="Enter link">
@@ -59,7 +59,7 @@
 
 					<?php if(!empty($frame_posts)){?>
 
-					<?php 
+					<?php
 					$advance_options = false;
 					foreach ($frame_posts as $key => $value){
 						if ( isset( $value['data']['advance_options'] ) ){
@@ -83,9 +83,9 @@
 						                	<i class="<?php _ec( $value['icon'] )?> p-r-0" style="color: <?php _ec( $value['color'] )?>;"></i>
 						                </a>
 						            </li>
-						        	<?php 
-						        	$advance_option_menu++; 
-						        	endif 
+						        	<?php
+						        	$advance_option_menu++;
+						        	endif
 						        	?>
 					        	<?php endforeach ?>
 					        </ul>
@@ -97,9 +97,9 @@
 					            <div class="tab-pane fade show <?php _ec( $advance_option_tab==0?"active":"" )?>" id="advance_option_<?php _ec( $value['parent']['id'] )?>"  data-network="<?php _ec( $value['parent']['id'] )?>" role="tabpanel">
 							        <?php _ec( $value['data']['advance_options'] )?>
 							    </div>
-							    <?php 
+							    <?php
 							    $advance_option_tab++;
-							    endif 
+							    endif
 							    ?>
 				        	<?php endforeach ?>
 						</div>
@@ -150,7 +150,7 @@
 										<input type="text" name="ids" value="<?php _ec( $post->ids )?>">
 									</div>
 								<?php endif ?>
-								
+
 							<?php }?>
 							<div class="post-by d-none" data-by="2">
 								<div class="card-body <?php _ec( empty($post)?"border-top":"" )?> p-20">
@@ -210,7 +210,7 @@
 									</div>
 								</div>
 							</div>
-							
+
 						</div>
 
 					</div>
@@ -218,7 +218,7 @@
 				</div>
 				<div class="card-footer p-15">
 					<div class="d-flex justify-content-end">
-						<?php 
+						<?php
 						if( empty($post) ){
 							$button = 1;
 						}else{
@@ -262,7 +262,7 @@
 		<div class="post-tab preview-tab col-md-4 d-lg-block d-md-none d-sm-none d-xs-none d-none">
 			<?php if(!empty($frame_posts)){?>
 
-			<?php 
+			<?php
 			$preview = false;
 			$preview_count = 0;
 			foreach ($frame_posts as $key => $value){
@@ -292,9 +292,9 @@
 					                	<i class="<?php _ec( $value['icon'] )?> p-r-0 fs-20" style="color: <?php _ec( $value['color'] )?>;"></i>
 					                </a>
 					            </li>
-					            <?php 
+					            <?php
 							    $preview_count++;
-							    endif 
+							    endif
 							    ?>
 				        	<?php endforeach ?>
 				        </ul>

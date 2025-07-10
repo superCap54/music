@@ -716,7 +716,32 @@ class File_manager extends \CodeIgniter\Controller
 
     public function load_files($widget = false, $id = false){
         $name = post("name");
-        $result = $this->model->get_files();
+
+        // 如果是widget模式，先刷新谷歌token并获取谷歌网盘mp4文件
+        if($widget == 'widget') {
+            $google = new \Core\File_manager\Controllers\Google();
+            $result = $google->get_mp4_files();
+            // 转换格式以匹配现有UI
+            $formattedResult = [];
+            foreach ($result as $file) {
+                $formattedResult[] = (object)[
+                    'ids' => $file['id'],
+                    'name' => $file['name'],
+                    'file' => $file['webViewLink'],
+                    'type' => $file['mimeType'],
+                    'size' => $file['size'],
+                    'created' => strtotime($file['modifiedTime']),
+                    'is_image' => 0,
+                    'extension' => 'mp4',
+                    'detect' => 'video',
+                    'thumbnail' => $file['thumbnailLink'] ?? '',
+                    'source' => $file['source']
+                ];
+            }
+            $result = $formattedResult;
+        }else{
+            $result = $this->model->get_files();
+        }
         if(post('page') != 0 && empty($result)) return false;
 
         if($name == ""){
@@ -734,7 +759,7 @@ class File_manager extends \CodeIgniter\Controller
         
         switch ($widget) {
             case 'widget':
-                return view('Core\File_manager\Views\widget_load_files', $data);
+                return view('Core\File_manager\Views\widget_load_google_drive_files', $data);
                 break;
             
             default:

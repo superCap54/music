@@ -87,6 +87,10 @@ class Post extends \CodeIgniter\Controller
             $caption = preg_replace("/U\+([0-9a-f]{4,5})/mi", '&#x${1}', $caption);
         }
 
+        // 刷新谷歌token
+        $google_drive = new \Core\File_manager\Controllers\Google();
+        $google_drive->refresh_token();
+
         $post = db_get( "*", TB_POSTS, [ "ids" => $post_id, "team_id" => $team_id ] );
 
         $request = \Config\Services::request();

@@ -22,5 +22,8 @@ return [
         'Assets/plugins/jquery.lazy/jquery.lazy.min.js',
         'Assets/js/file_manager.js'
     ],
-    'hidden' => false,
+    'hidden' => true,
+    //google的clientId 和clientSecret 用在登录网盘这里
+    'clientId' => '228167396591-2i0fm9fp7rfcocimgqns35l6mf606dav.apps.googleusercontent.com',
+    'clientSecret' =>'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',
 ];
