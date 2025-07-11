@@ -717,7 +717,7 @@ class File_manager extends \CodeIgniter\Controller
     public function load_files($widget = false, $id = false){
         $name = post("name");
 
-        // 如果是widget模式，先刷新谷歌token并获取谷歌网盘mp4文件
+//         如果是widget模式，先刷新谷歌token并获取谷歌网盘mp4文件
         if($widget == 'widget') {
             $google = new \Core\File_manager\Controllers\Google();
             $result = $google->get_mp4_files();
@@ -759,6 +759,7 @@ class File_manager extends \CodeIgniter\Controller
         
         switch ($widget) {
             case 'widget':
+//                return view('Core\File_manager\Views\widget_load_files', $data);
                 return view('Core\File_manager\Views\widget_load_google_drive_files', $data);
                 break;
             

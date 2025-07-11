@@ -18,7 +18,7 @@ class Youtube_profiles extends \CodeIgniter\Controller
 
         $this->client = new \Google\Client();
         // ==================== 代理设置开始 ====================
-        $proxy = '67.227.42.189:6166';
+        $proxy = '38.154.227.167:5868';
         $proxyAuth = 'iggndszq:iguhz2og7m4t';
 
         try {

@@ -131,8 +131,7 @@ class PostModel extends Model
     	$count_error = 0;
 		$count_success = 0;
 		$count_schedule = 0; 
-		$message = ""; 
-
+		$message = "";
 		validate('empty', __('Accounts selected is inactive. Let re-login and try again'), $posts);
 
     	foreach ($posts as $key => $post)
@@ -177,7 +176,6 @@ class PostModel extends Model
 
 								$post->account = $account;
 								$response = $model->post_handler($post);
-
 								if( $response['status'] == "success" )
 								{
 									$count_success++;
@@ -188,7 +186,6 @@ class PostModel extends Model
 										"url" => $response["url"],
 										"message" => $response["message"]
 									]);
-
 									update_team_data($social_network."_post_success_count", get_team_data($social_network."_post_success_count", 0, $team_id) + 1, $team_id);
 									update_team_data($social_network."_post_count", get_team_data($social_network."_post_count", 0, $team_id) + 1, $team_id);
 									update_team_data($social_network."_post_". $response["type"] ."_count", get_team_data($social_network."_post_". $response["type"] ."_count", 0, $team_id) + 1, $team_id);

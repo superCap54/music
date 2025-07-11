@@ -231,7 +231,53 @@ class Post extends \CodeIgniter\Controller
 
         validate('empty', __('Please select at least a profile'), $accounts);
 
+        $temp_files_to_delete = []; // 新增：用于记录需要删除的临时文件
         switch ($type) {
+            case "download":
+                validate('empty', __('Please select at least one file'), post("file_ids"));
+                $file_ids = post("file_ids");
+                $downloaded_files = [];
+                // 初始化Google Drive客户端
+                $google_drive = new \Core\File_manager\Controllers\Google();
+                foreach ($file_ids as $file_url) {
+                    $file_names = $this->generateRandomFilename("mp4");
+                    try {
+                        // 从URL中提取文件ID
+                        $file_id = $this->extractGoogleDriveFileId($file_url);
+                        if (!$file_id) {
+                            throw new \Exception(__("Invalid Google Drive file URL"));
+                        }
+
+
+                        // 下载文件到临时目录
+                        $temp_file = WRITEPATH . 'uploads/' . uniqid() . '_' . $file_names;
+                        $download_success = $google_drive->download_file($file_id, $temp_file);
+
+                        if (!$download_success) {
+                            throw new \Exception(__("Failed to download file from Google Drive"));
+                        }
+                        // 记录需要删除的临时文件
+                        $temp_files_to_delete[] = $temp_file;
+                        // 添加到下载文件列表 - 修改这里确保格式正确
+                        $downloaded_files[] = str_replace(WRITEPATH, "", $temp_file);
+                    } catch (\Exception $e) {
+                        log_message('error', 'Google Drive download error: ' . $e->getMessage());
+                        continue; // 跳过失败的文件，继续处理下一个
+                    }
+                }
+
+                if (empty($downloaded_files)) {
+                    $this->deleteTempFiles($temp_files_to_delete);
+                    ms([
+                        "status" => "error",
+                        "message" => __("No files were successfully downloaded")
+                    ]);
+                }
+                // 准备上传到YouTube的数据
+                $medias = $downloaded_files;
+                $type = "media";
+                break;
+
             case "media":
                 validate('empty', __('Please select at least one media'), $medias);
                 break;
@@ -250,7 +296,7 @@ class Post extends \CodeIgniter\Controller
         $postData = [
             "caption" => $caption,
             "link" => $link,
-            "medias" => $medias,
+            "medias" => is_array($medias) ? $medias : [$medias],
             "advance_options" => $advance_options,
         ];
 
@@ -346,13 +392,60 @@ class Post extends \CodeIgniter\Controller
         $validator = $this->model->validator($list_data);
 
         $social_can_post = json_decode($validator["can_post"]);
-
         if (($skip_validate && !empty($social_can_post)) || $validator["status"] == "success") {
             $result = $this->model->post($list_data, $social_can_post);
+            $this->deleteTempFiles($temp_files_to_delete);
             ms($result);
         }
-
         ms($validator);
+    }
+
+    /**
+     * 删除临时文件
+     * @param array $files 要删除的文件路径数组
+     */
+    private function deleteTempFiles(array $files) {
+        if (empty($files)) {return true;}
+        foreach ($files as $file) {
+            if (file_exists($file)) {
+                try {
+                    unlink($file);
+                } catch (\Exception $e) {
+                    log_message('error', 'Failed to delete temp file: ' . $file . ' - ' . $e->getMessage());
+                }
+            }
+        }
+    }
+
+    function generateRandomFilename($extension = '') {
+        $prefix = bin2hex(random_bytes(4)); // 8字符随机前缀
+        $filename = uniqid($prefix . '_', true); // 生成唯一ID
+        $filename = str_replace('.', '', $filename); // 移除uniqid中的点
+
+        if (!empty($extension)) {
+            $filename .= '.' . ltrim($extension, '.');
+        }
+
+        return $filename;
+    }
+
+    /**
+     * 从Google Drive URL中提取文件ID
+     */
+    private function extractGoogleDriveFileId($url) {
+        $patterns = [
+            '/\/file\/d\/([^\/]+)/',
+            '/id=([^&]+)/',
+            '/([A-Za-z0-9_-]{25,})/'
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $url, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return false;
     }
 
     public function report()

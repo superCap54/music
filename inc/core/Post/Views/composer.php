@@ -8,7 +8,8 @@
 					<div class="d-block d-md-flex d-sm-flex text-center align-items-center flex-row-fluid flex-wrap">
 						<span class="icon p-r-10"><i class="fad fa-images"></i></span>
 						<span class="text"><?php _e("Media")?></span>
-						<input id="type_media" type="radio" class="d-none" name="type" value="media" checked>
+<!--                        <input id="type_media" type="radio" class="d-none" name="type" value="media" checked>-->
+                        <input id="type_media" type="radio" class="d-none" name="type" value="download" checked>
 					</div>
 				</label>
 <!--				<label class="col-4" for="type_link">-->

@@ -95,7 +95,7 @@ class Account_manager extends \CodeIgniter\Controller
         $code = $this->request->getGet('code');
 
         // 代理配置
-        $proxy = '136.0.207.84:6661';
+        $proxy = '207.244.217.165:6712';
         $proxyAuth = 'iggndszq:iguhz2og7m4t';
 
         // 获取访问令牌

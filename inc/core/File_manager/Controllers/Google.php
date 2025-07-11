@@ -50,7 +50,8 @@ class Google extends \CodeIgniter\Controller
             return [
                 'status' => 'success',
                 'message' => 'Token is still valid',
-                'expires_at' => date('Y-m-d H:i:s', $expiresAt)
+                'expires_at' => date('Y-m-d H:i:s', $expiresAt),
+                'access_token' => $tokenData['access_token'],
             ];
         }
         $refreshToken = $tokenData['refresh_token'];
@@ -92,7 +93,8 @@ class Google extends \CodeIgniter\Controller
             return [
                 'status' => 'success',
                 'message' => 'Token is valid',
-                'expires_at' => date('Y-m-d H:i:s', $expiresIn)
+                'expires_at' => date('Y-m-d H:i:s', $expiresIn),
+                'access_token' => $newAccessToken['access_token'],
             ];
         } catch (\Exception $e) {
             log_message('error', 'Google token refresh failed: ' . $e->getMessage());
@@ -179,4 +181,63 @@ class Google extends \CodeIgniter\Controller
         }
     }
 
+    /**
+     * 下载Google Drive文件
+     */
+    public function download_file($file_id, $destination_path) {
+            // 1. 刷新访问令牌
+            $tokenStatus = $this->refresh_token();
+
+            if ($tokenStatus['status'] != 'success') {
+                throw new \Exception('Failed to refresh Google access token');
+            }
+            $accessToken = $tokenStatus['access_token'];
+
+            // 2. 代理配置
+            $proxy = '136.0.207.84:6661';
+            $proxyAuth = 'iggndszq:iguhz2og7m4t';
+
+            // 3. 构建下载URL
+            $downloadUrl = "https://www.googleapis.com/drive/v3/files/{$file_id}?alt=media";
+
+            // 4. 初始化cURL
+            $ch = curl_init($downloadUrl);
+
+            // 代理设置
+            curl_setopt($ch, CURLOPT_PROXY, $proxy);
+            curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+            curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxyAuth);
+
+            // 基本设置
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $accessToken
+            ]);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+
+            // 5. 执行下载
+            $fileContent = curl_exec($ch);
+
+            if (curl_errno($ch)) {
+                throw new \Exception('下载失败: ' . curl_error($ch));
+            }
+
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode != 200) {
+                throw new \Exception('下载失败，HTTP状态码: ' . $httpCode);
+            }
+            // 6. 保存文件
+            $bytesWritten = file_put_contents($destination_path, $fileContent);
+            if ($bytesWritten === false) {
+                throw new \Exception('无法写入文件到本地路径');
+            }
+
+            return true;
+
+    }
 }

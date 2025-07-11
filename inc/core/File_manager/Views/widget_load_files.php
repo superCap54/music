@@ -9,8 +9,8 @@
 				</div>
 			</div>
 		</div>
-	</a>	
-</div>		
+	</a>
+</div>
 <?php endif ?>
 
 <?php if( !empty( $result ) ){?>
@@ -24,6 +24,7 @@
 	$detect_icon = detect_file_icon($detect);
 	$text = $detect_icon['text'];
 	$icon = $detect_icon['icon'];
+    var_dump($value);
 	?>
 
 	<div class="col-2">
@@ -39,7 +40,7 @@
 						<div class="text-muted fs-8"><?php _e("Folder")?></div>
 					</div>
 				</div>
-			</a>			
+			</a>
 		<?php }else{?>
 			<a class="fm-list-item rounded mb-4 bg-white" id="<?php _ec( $id )?>" data-name="<?php _ec( $name )?>" href="javascript:void(0);" data-id="<?php _ec( $value->ids )?>" data-is-image="<?php _ec( $value->is_image )?>" data-file="<?php _ec( $file_url )?>" >
 				<img class="fm-list-overplay" src="<?php _ec( get_module_path( __DIR__, "Assets/img/overplay.png" ) )?>">
@@ -55,7 +56,7 @@
 						</div>
 					</div>
 					<?php } else {?>
-					
+
 						<?php if (is_video($file_url)): ?>
 							<div class="fm-list-hover overflow-hidden position-relative">
 								<video class="fm-video miw-100">
@@ -73,15 +74,15 @@
 								</div>
 							</div>
 						<?php endif ?>
-					
+
 					<?php }?>
 					<div class="fm-list-info border-top">
 						<div class="text-truncate fw-5 text-dark" title="<?php _ec( $value->name )?>"><?php _ec( $value->name )?></div>
 						<div class="text-muted fs-8"><?php _ec( format_bytes( $value->size ) )?></div>
 					</div>
-					
+
 				</div>
-			</a>			
+			</a>
 		<?php }?>
 	</div>
 

@@ -11,9 +11,7 @@ class Youtube_postModel extends Model
         $client_secret = get_option('youtube_api_secret', '');
         $api_key = get_option('youtube_api_key', '');
 
-        $proxy = '45.41.160.36:6018';
-//        $proxy = '59.37.173.75:35343';
-//        $proxyAuth = 'biechao:biechao';
+        $proxy = '136.0.207.84:6661';
         $proxyAuth = 'iggndszq:iguhz2og7m4t';
         $httpProxy = "http://{$proxyAuth}@{$proxy}";
 
