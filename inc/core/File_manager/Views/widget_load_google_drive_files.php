@@ -67,7 +67,11 @@
 <?php }else{?>
 	<?php if ($page == 0 && $folder == 0): ?>
 	<div class="fm-empty text-center fs-90 text-muted h-100 d-flex flex-column align-items-center justify-content-center">
+        <?php if($is_login_google_drive): ?>
 		<img class="mh-190 mb-4" alt="" src="<?php _e( get_theme_url() ) ?>Assets/img/empty2.png">
+        <?php else: ?>
+            <a href="/account_manager"><img class="mh-190 mb-4" alt="" src="<?php _e( get_theme_url() ) ?>Assets/img/googledriveauth.png"></a>
+        <?php endif ?>
 	</div>
-	<?php endif ?>
+    <?php endif ?>
 <?php }?>

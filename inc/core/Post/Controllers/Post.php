@@ -87,9 +87,14 @@ class Post extends \CodeIgniter\Controller
             $caption = preg_replace("/U\+([0-9a-f]{4,5})/mi", '&#x${1}', $caption);
         }
 
-        // 刷新谷歌token
-        $google_drive = new \Core\File_manager\Controllers\Google();
-        $google_drive->refresh_token();
+        //先获取该用户是否绑定谷歌网盘
+        $googleDriveToken = db_get('*', 'sp_google_drive_tokens', ['user_id' => $team_id]);
+
+        if (!empty($googleDriveToken)) {
+            // 刷新谷歌token
+            $google_drive = new \Core\File_manager\Controllers\Google();
+            $google_drive->refresh_token();
+        }
 
         $post = db_get( "*", TB_POSTS, [ "ids" => $post_id, "team_id" => $team_id ] );
 
@@ -99,7 +104,7 @@ class Post extends \CodeIgniter\Controller
             "desc" => $this->config['desc'],
             "config" => $this->config,
             "post" => json_encode($post),
-            "content" => view('Core\Post\Views\composer', ['frame_posts' => $request->block_frame_posts, "post" => $post, "caption" => $caption ])
+            "content" => view('Core\Post\Views\composer', ['frame_posts' => $request->block_frame_posts, "post" => $post, "caption" => $caption]),
         ];
 
         return view('Core\Post\Views\index', $data);

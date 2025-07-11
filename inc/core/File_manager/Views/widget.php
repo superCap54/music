@@ -16,7 +16,7 @@
             </div>
 			<div class="fm-list row px-2 py-4 ajax-load-scroll m-l-0 m-r-0 align-content-start" style="height: 669px;" data-url="<?php _e( base_url("file_manager/load_files/widget") )?>" data-scroll="ajax-load-scroll" data-call-after="File_manager.lazy(); File_manager.checkSelected();">
 				<div class="fm-empty text-center fs-90 text-muted h-100 d-flex flex-column align-items-center justify-content-center">
-					<img class="mh-190 mb-4" alt="" src="<?php _e( get_theme_url() ) ?>Assets/img/empty2.png">
+                    <img class="mh-190 mb-4" alt="" src="<?php _e( get_theme_url() ) ?>Assets/img/empty2.png">
 				</div>
 			</div>
 			<div class="ajax-loading text-center bg-primary"></div>

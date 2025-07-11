@@ -85,6 +85,9 @@ class File_manager extends \CodeIgniter\Controller
     }
 
     public function widget( $params = [] ){
+//        $team_id = get_team("id");
+//        $googleDriveToken = db_get('*', 'sp_google_drive_tokens', ['user_id' => $team_id]);
+//        $is_login_google_drive = empty($googleDriveToken) ? false : true;
         if(isset($params['type'])){
             $type = $params['type'];
         }else{
@@ -716,29 +719,36 @@ class File_manager extends \CodeIgniter\Controller
 
     public function load_files($widget = false, $id = false){
         $name = post("name");
+        $team_id = get_team("id");
 
 //         如果是widget模式，先刷新谷歌token并获取谷歌网盘mp4文件
+        $is_login_google_drive = false;
         if($widget == 'widget') {
-            $google = new \Core\File_manager\Controllers\Google();
-            $result = $google->get_mp4_files();
             // 转换格式以匹配现有UI
-            $formattedResult = [];
-            foreach ($result as $file) {
-                $formattedResult[] = (object)[
-                    'ids' => $file['id'],
-                    'name' => $file['name'],
-                    'file' => $file['webViewLink'],
-                    'type' => $file['mimeType'],
-                    'size' => $file['size'],
-                    'created' => strtotime($file['modifiedTime']),
-                    'is_image' => 0,
-                    'extension' => 'mp4',
-                    'detect' => 'video',
-                    'thumbnail' => $file['thumbnailLink'] ?? '',
-                    'source' => $file['source']
-                ];
+            $result = [];
+            //先获取该用户是否绑定谷歌网盘
+            $googleDriveToken = db_get('*', 'sp_google_drive_tokens', ['user_id' => $team_id]);
+            if (!empty($googleDriveToken)) {
+                $is_login_google_drive = true;
+                $google = new \Core\File_manager\Controllers\Google();
+                $result = $google->get_mp4_files();
+                foreach ($result as $file) {
+                    $formattedResult[] = (object)[
+                        'ids' => $file['id'],
+                        'name' => $file['name'],
+                        'file' => $file['webViewLink'],
+                        'type' => $file['mimeType'],
+                        'size' => $file['size'],
+                        'created' => strtotime($file['modifiedTime']),
+                        'is_image' => 0,
+                        'extension' => 'mp4',
+                        'detect' => 'video',
+                        'thumbnail' => $file['thumbnailLink'] ?? '',
+                        'source' => $file['source']
+                    ];
+                }
+                $result = $formattedResult;
             }
-            $result = $formattedResult;
         }else{
             $result = $this->model->get_files();
         }
@@ -755,6 +765,7 @@ class File_manager extends \CodeIgniter\Controller
             'widget' => $widget,
             'id' => $id,
             'name' => $name,
+            'is_login_google_drive' => $is_login_google_drive
         ];
         
         switch ($widget) {
