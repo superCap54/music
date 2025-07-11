@@ -62,7 +62,7 @@
                 <div class="d-flex align-items-center align-self-center h-100 mih-500">
                     <div class="w-100 text-center">
                         <div class="text-center px-4">
-                            Assets/img/empty2.png">
+                            <img class="mh-190 mb-4" alt="" src="<?php _e( get_theme_url() ) ?>Assets/img/empty2.png">
                         </div>
                         <a href="<?php _ec(get_module_url("index/update"))?>" class="btn btn-primary btn-sm b-r-30"><i class="fad fa-plus"></i> <?php _e("Add new")?></a>
                     </div>

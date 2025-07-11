@@ -10,26 +10,61 @@ class ProxiesModel extends Model
 
     public function check_proxy_status($proxy) {
         $url = 'https://www.youtube.com';
-        $timeout = 10; // 5秒超时
+        $timeout = 10; // 10秒超时
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_PROXY => $proxy, // 直接使用 user:pass@ip:port 格式
+            CURLOPT_PROXYTYPE => CURLPROXY_HTTP,
+            CURLOPT_HTTPPROXYTUNNEL => true,
+            CURLOPT_PROXYAUTH => CURLAUTH_BASIC,
+            CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_CONNECTTIMEOUT => $timeout,
+            CURLOPT_NOBODY => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FAILONERROR => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 3,
+            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        ]);
 
         try {
-            $ch = curl_init();
-            curl_setopt_array($ch, [
-                CURLOPT_URL => $url,
-                CURLOPT_PROXY => $proxy,
-                CURLOPT_TIMEOUT => $timeout,
-                CURLOPT_CONNECTTIMEOUT => $timeout,
-                CURLOPT_NOBODY => true,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_FAILONERROR => true // 直接返回false而不是抛出异常
-            ]);
+            $startTime = microtime(true);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $totalTime = round(microtime(true) - $startTime, 2);
 
-            $success = curl_exec($ch) !== false;
+            $error = curl_error($ch);
             curl_close($ch);
-            return $success;
+
+            if ($response === false) {
+                return [
+                    'status' => false,
+                    'error' => $error ?: 'Unknown proxy error',
+                    'time' => $totalTime
+                ];
+            }
+
+            // 只要能从YouTube获取响应（即使403），就认为代理可用
+            return [
+                'status' => true,
+                'http_code' => $httpCode,
+                'time' => $totalTime,
+                'proxy' => $proxy
+            ];
+
         } catch (Exception $e) {
-            return false;
+            if (is_resource($ch)) {
+                curl_close($ch);
+            }
+            return [
+                'status' => false,
+                'error' => $e->getMessage(),
+                'time' => 0
+            ];
         }
     }
 
