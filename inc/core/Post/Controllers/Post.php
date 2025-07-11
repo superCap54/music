@@ -367,8 +367,7 @@ class Post extends \CodeIgniter\Controller
                 break;
         }
 
-        $list_accounts = $this->account_manager_model->get_accounts_by($accounts);
-
+        $list_accounts = $this->account_manager_model->get_accounts_by($accounts,"ids",1,0,true);
         if (empty($list_accounts)) {
             validate('empty', __('Accounts selected is inactive. Let re-login and try again'), $list_accounts);
         }
@@ -380,6 +379,7 @@ class Post extends \CodeIgniter\Controller
             $data['social_network'] = $value->social_network;
             $data['category'] = $value->category;
             $data['api_type'] = $value->login_type;
+            $data['proxy_info'] = $value->proxy_info;
 
             if ($post_by == 3) {
                 foreach ($time_posts as $time) {

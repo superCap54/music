@@ -11,23 +11,7 @@ class Youtube_postModel extends Model
         $client_secret = get_option('youtube_api_secret', '');
         $api_key = get_option('youtube_api_key', '');
 
-        $proxy = '136.0.207.84:6661';
-        $proxyAuth = 'iggndszq:iguhz2og7m4t';
-        $httpProxy = "http://{$proxyAuth}@{$proxy}";
-
-
         $this->client = new \Google\Client();
-        $this->client->setHttpClient(new \GuzzleHttp\Client([
-            'proxy' => $httpProxy,
-            'verify' => false, // 必须关闭SSL验证
-            'timeout' => 60,
-            'connect_timeout' => 30,
-            'curl' => [
-                CURLOPT_PROXYTYPE => CURLPROXY_HTTP,
-                CURLOPT_HTTPPROXYTUNNEL => true,
-                CURLOPT_PROXYAUTH => CURLAUTH_BASIC
-            ]
-        ]));
         $this->client->setAccessType("offline");
         $this->client->setApprovalPrompt("force");
         $this->client->setApplicationName("Youtube");
@@ -112,6 +96,11 @@ class Youtube_postModel extends Model
         $data = json_decode($post->data, false);
         $medias = $data->medias;
         $shortlink_by = shortlink_by($data);
+
+        // 从post对象获取代理信息
+        if (!empty($post->proxy_info)) {
+            $this->setProxyForClient($post->proxy_info);
+        }
 
         $this->client->setAccessToken($post->account->token);
 
@@ -220,5 +209,37 @@ class Youtube_postModel extends Model
                 "type" => $post->type
             ];
         }
+    }
+
+
+    /**
+     * 为Google客户端设置代理
+     */
+    private function setProxyForClient($proxyInfo) {
+        // 代理信息格式：username:password@ip:port
+        $proxyParts = explode('@', $proxyInfo);
+
+        if (count($proxyParts) === 2) {
+            $proxyAuth = $proxyParts[0];
+            $proxy = $proxyParts[1];
+            $httpProxy = "http://{$proxyAuth}@{$proxy}";
+        } else {
+            // 如果没有认证信息，直接使用IP:PORT
+            $httpProxy = "http://{$proxyInfo}";
+        }
+
+        $httpClient = new \GuzzleHttp\Client([
+            'proxy' => $httpProxy,
+            'verify' => false,
+            'timeout' => 60,
+            'connect_timeout' => 30,
+            'curl' => [
+                CURLOPT_PROXYTYPE => CURLPROXY_HTTP,
+                CURLOPT_HTTPPROXYTUNNEL => true,
+                CURLOPT_PROXYAUTH => CURLAUTH_BASIC
+            ]
+        ]);
+
+        $this->client->setHttpClient($httpClient);
     }
 }
