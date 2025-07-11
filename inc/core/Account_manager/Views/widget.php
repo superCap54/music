@@ -58,7 +58,7 @@
 						?>
 						
 						<div class="search-accounts">
-							<label class="am-choice-item d-flex flex-stack" for="am_<?php _ec($value->id)?>" data-pid="<?php _ec($value->pid)?>" data-account='<?php _ec( json_encode( $value ) )?>' >
+							<label class="am-choice-item d-flex flex-stack" for="am_<?php _ec($value->id)?>" data-pid="<?php _ec($value->pid)?>" data-account='<?php _ec( json_encode( $value ) )?>' <?php if(empty($value->proxy)){ ?> style="cursor:not-allowed;" <?php } ?> >
                                 <div class="symbol symbol-45px flex items-center justify-center" style="margin-left: 1rem;margin-right: 1rem;">
                                     <i class="ri-youtube-fill text-sm" style="font-size: 30px; color: #FF0000"></i>
                                 </div>
@@ -68,10 +68,16 @@
 										<span class="text-muted fw-semibold d-block fs-10"><?php _e( ucfirst( str_replace("_", " ", $value->social_network) . " " . __($value->category) ) )?> <span class="badge fw-4 fs-9 badge-light-<?php _ec( $login_type_color )?>"><?php _e( $login_type )?></span></span>
 									</div>
 								</div>
+                                <?php if (!empty($value->proxy)): ?>
 								<div class="form-check me-2">
 			                        <input class="form-check-input check-item" id="am_<?php _ec($value->id)?>" name="accounts[]" type="checkbox" value="<?php _e($value->ids)?>">
 			                        <label class="form-check-label"></label>
 			                    </div>
+                                <?php else: ?>
+                                    <div class="form-check me-2">
+                                        <a class="form-check-label" href="/proxies">Need Assign Proxy</a>
+                                    </div>
+                                <?php endif; ?>
 
 			                    <div class="am-choice-item-selected d-none">
 			                    	<div class="am-selected-item border mb-1 mt-1 rounded float-start px-2 me-2 miw-100 mw-150" data-id="<?php _e($value->ids)?>" data-network="<?php _ec($value->social_network)?>">

@@ -218,7 +218,6 @@ class Account_manager extends \CodeIgniter\Controller
     public function widget($params = [])
     {
         $team_id = get_team("id");
-
         if (isset($params['wheres']) && is_array($params['wheres'])) {
             $wheres["team_id"] = $team_id;
             $accounts = db_fetch("id,ids,pid,name,pid,category,social_network,avatar,login_type,module", TB_ACCOUNTS, $params['wheres']);
@@ -231,9 +230,8 @@ class Account_manager extends \CodeIgniter\Controller
         } elseif (isset($params['account_id']) && $params['account_id'] != "") {
             $accounts = db_fetch("id,ids,pid,name,pid,category,social_network,avatar,login_type,module", TB_ACCOUNTS, ["can_post" => 1, "team_id" => $team_id, "id" => $params['account_id']], "social_network", "ASC");
         } else {
-            $accounts = db_fetch("id,ids,pid,name,pid,category,social_network,avatar,login_type,module", TB_ACCOUNTS, ["can_post" => 1, "team_id" => $team_id, "status" => 1], "social_network", "ASC");
+            $accounts = db_fetch("id,ids,pid,name,pid,category,social_network,avatar,login_type,proxy,module", TB_ACCOUNTS, ["can_post" => 1, "team_id" => $team_id, "status" => 1], "social_network", "ASC");
         }
-
 
         permission_accounts($accounts);
 
