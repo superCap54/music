@@ -8,9 +8,72 @@ class Bulk_post extends \CodeIgniter\Controller
         include get_module_dir( __DIR__ , 'Libraries/vendor/autoload.php');
         $this->post_model = new \Core\Post\Models\PostModel();
         $this->account_manager_model = new \Core\Account_manager\Models\Account_managerModel();
+        $this->workflows_model = new \Core\Post\Models\WorkflowsModel();
+        //获取当前用户id
+        $this->user_id = get_user("id");
+    }
+
+    public function index()
+    {
+        $post_id = get("post_id");
+        $team_id = get_team("id");
+        $caption = get("caption");
+        //传参
+        $is_enabled = get("is_enabled");
+//      获取能运行的workflows
+        $workflows = $this->workflows_model->getAllWorkflows(true);
+//      获取当前用户的workflows状态
+        $userWorkflows = $this->workflows_model->getUserWorkflows($this->user_id);
+//      创建用户工作流ID到状态的映射表
+        $userWorkflowStatusMap = [];
+        foreach ($userWorkflows as $userWorkflow) {
+            $userWorkflowStatusMap[$userWorkflow['workflow_id']] = [
+                'user_workflow_id' => $userWorkflow['user_workflow_id'],
+                'is_enabled' => $userWorkflow['is_enabled']
+            ];
+        }
+//      合并数据到workflows数组
+        $workflowsWithStatus = [];
+        foreach ($workflows as $workflow) {
+            $workflowId = $workflow['workflow_id'];
+
+            $mergedWorkflow = $workflow;
+            $mergedWorkflow['user_is_enabled'] = false; // 默认值
+            $mergedWorkflow['user_workflow_id'] = null; // 默认值
+
+            if (isset($userWorkflowStatusMap[$workflowId])) {
+                $mergedWorkflow['user_is_enabled'] = (bool)$userWorkflowStatusMap[$workflowId]['is_enabled'];
+                $mergedWorkflow['user_workflow_id'] = $userWorkflowStatusMap[$workflowId]['user_workflow_id'];
+            }
+
+            $workflowsWithStatus[] = $mergedWorkflow;
+        }
+
+//      根据传入的is_enabled参数过滤结果
+        if ($is_enabled !== null) {
+            $filterEnabled = (bool)$is_enabled;
+            $workflowsWithStatus = array_filter($workflowsWithStatus, function ($workflow) use ($filterEnabled) {
+                return $workflow['user_is_enabled'] === $filterEnabled;
+            });
+        }
+
+//      重新索引数组（如果进行了过滤）
+        $workflowsWithStatus = array_values($workflowsWithStatus);
+        $post = db_get( "*", TB_POSTS, [ "ids" => $post_id, "team_id" => $team_id ] );
+        $data = [
+            "title" => $this->config['name'],
+            "desc" => $this->config['desc'],
+            "config" => $this->config,
+            "post" => json_encode($post),
+            "content" => view('Core\Bulk_post\Views\make',[
+                'workflows' => $workflowsWithStatus,  // 明确指定变量名
+                "post" => $post
+            ])
+        ];
+        return view('Core\Bulk_post\Views\index', $data);
     }
     
-    public function index( $page = false ) {
+    public function index1( $page = false ) {
         $team_id = get_team("id");
         $data = [
             "title" => $this->config['name'],

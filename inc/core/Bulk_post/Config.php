@@ -15,5 +15,5 @@ return [
         'position' => 1500,
         'name' => 'Bulk post'
     ],
-    'hidden' => true,
+    'hidden' => false,
 ];
