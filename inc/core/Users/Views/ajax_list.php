@@ -90,11 +90,16 @@
 		                    }
 		                }
 			  		 	?>
-				    	<li>
-				    		<a href="<?php _e( get_module_url('index/update/'.$value->ids) )?>" class="actionItem dropdown-item" data-remove-other-active="true" data-active="bg-light-primary" data-result="html" data-content="main-wrapper" data-history="<?php _e( get_module_url('index/update/'.$value->ids) )?>" data-call-after="Core.calendar();">
-			                	<i class="fad fa-pen-square pe-2"></i> <?php _e('Edit')?>
-			                </a>
-				    	</li>
+                        <li>
+                            <a href="<?php _e( get_module_url('index/update/'.$value->ids) )?>" class="actionItem dropdown-item" data-remove-other-active="true" data-active="bg-light-primary" data-result="html" data-content="main-wrapper" data-history="<?php _e( get_module_url('index/update/'.$value->ids) )?>" data-call-after="Core.calendar();">
+                                <i class="fad fa-pen-square pe-2"></i> <?php _e('Edit')?>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php _e( get_module_url('index/update/'.$value->ids) )?>" class="actionItem dropdown-item" data-remove-other-active="true" data-active="bg-light-primary" data-result="html" data-content="main-wrapper" data-history="<?php _e( get_module_url('index/update/'.$value->ids) )?>" data-call-after="Core.calendar();">
+                                <i class="fad fa-music pe-2"></i> <?php _e('Licensed Music')?>
+                            </a>
+                        </li>
 				    	<li>
 				    		<a class="dropdown-item actionItem" href="<?php _e( get_module_url('view/'.$value->ids) )?>" data-redirect="<?php _ec( base_url("platform") )?>"><i class="fad fa-eye pe-2"></i> <?php _e("Preview as user")?></a>
 				    	</li>
