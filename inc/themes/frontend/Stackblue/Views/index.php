@@ -1,271 +1,790 @@
-<?php $platforms = db_fetch("*", TB_PLATFORM, ["status" => 1]); ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<meta charset="utf-8">
-    <meta name="keywords" content="<?php _ec( get_option("website_keyword", "social network, marketing, brands, businesses, agencies, individuals") )?>" />
-    <meta name="description" content="<?php _ec( get_option("website_description", "Let start to manage your social media so that you have more time for your business.") )?>" />
-    <meta name="author" content="stackposts.com" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title><?php _ec( get_option("website_title", "#1 Social Media Management & Analysis Platform") )?></title>
-    <link rel="shortcut icon" href="<?php _ec( get_option("website_favicon", base_url("assets/img/favicon.svg")) )?>" />
-    <link rel="stylesheet" type="text/css" href="<?php _ec( get_theme_url() ) ?>Assets/fonts/fontawesome/css/all.min.css">
-    <link rel="stylesheet" type="text/css" href="<?php _ec( get_frontend_url() )?>Assets/plugins/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="<?php _ec( get_frontend_url() )?>Assets/plugins/owlcarousel/css/owl.carousel.min.css">
-    <link rel="stylesheet" type="text/css" href="<?php _ec( get_frontend_url() )?>Assets/plugins/owlcarousel/css/owl.theme.default.min.css">
-    <link rel="stylesheet" type="text/css" href="<?php _ec( get_frontend_url() )?>Assets/plugins/aos/aos.css">
-    <link rel="stylesheet" type="text/css" href="<?php _ec( get_frontend_url() )?>Assets/plugins/pagination/pagination.min.css">
-    <link rel="stylesheet" type="text/css" href="<?php _ec( get_frontend_url() )?>Assets/plugins/countup/odometer.css">
-    <link rel="stylesheet" type="text/css" href="<?php _ec( get_frontend_url() )?>Assets/plugins/flags/flag-icon.css">
-    <link rel="stylesheet" type="text/css" href="<?php _ec( get_frontend_url() )?>Assets/css/style.css">
-    <script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/plugins/jquery/jquery.min.js"></script>
-    <script type="text/javascript">
-        var PATH  = '<?php _ec( base_url()."/" )?>';
-        var csrf = "<?php _ec( csrf_hash() ) ?>";
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Music Platform</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:'#6366f1',secondary:'#a855f7'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+    <style>
+        :where([class^="ri-"])::before { content: "\f3c2"; }
+        body {
+            background-color: #0f0f0f;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+        }
+        .heading-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .hero-bg {
+            background: linear-gradient(135deg, rgba(15,15,15,0.9) 0%, rgba(15,15,15,0.7) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-bg::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-image: url('https://readdy.ai/api/search-image?query=dark%20futuristic%20music%20studio%20with%20neon%20blue%20and%20purple%20lights%2C%20flowing%20waveforms%2C%20abstract%20digital%20audio%20visualization%2C%20high-tech%20music%20production%20environment%20with%20subtle%20glowing%20elements%2C%20dark%20atmosphere%2C%20cinematic%20lighting&width=1920&height=1080&seq=1&orientation=landscape');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.6;
+            z-index: -1;
+        }
+        .glow-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .glow-button::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, rgba(99, 102, 241, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .glow-button:hover::after {
+            opacity: 1;
+        }
+        .glow-button-secondary {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .glow-button-secondary::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, rgba(168, 85, 247, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .glow-button-secondary:hover::after {
+            opacity: 1;
+        }
+        .feature-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(99, 102, 241, 0.2);
+        }
+        .waveform {
+            position: relative;
+            height: 60px;
+            width: 100%;
+            background: rgba(26, 26, 26, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .waveform::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg,
+            rgba(99, 102, 241, 0.1) 0%,
+            rgba(168, 85, 247, 0.1) 50%,
+            rgba(99, 102, 241, 0.1) 100%);
+            background-size: 200% 100%;
+            animation: waveMove 15s linear infinite;
+        }
+        @keyframes waveMove {
+            0% { background-position: 0% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .song-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .song-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(99, 102, 241, 0.2);
+        }
+        .glass-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .about-bg {
+            position: relative;
+            overflow: hidden;
+        }
+        .about-bg::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+            animation: gradientRotate 20s linear infinite;
+            z-index: -1;
+        }
+        @keyframes gradientRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #6366f1;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+        .custom-checkbox {
+            position: relative;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .custom-checkbox.checked {
+            background: #6366f1;
+            border-color: #6366f1;
+        }
+        .custom-checkbox.checked::after {
+            content: "";
+            position: absolute;
+            top: 4px;
+            left: 7px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        .custom-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .custom-switch::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        .custom-switch.active {
+            background: #6366f1;
+        }
+        .custom-switch.active::after {
+            transform: translateX(24px);
+        }
+    </style>
 </head>
-<body>
-    <div class="header <?php _e(uri("segment", 1)==""||uri("segment", 1)=="product"?"home-page":"")?>">
-	    <div class="container h-100">
-    		<div class="d-flex justify-content-between align-items-center h-100">
-    			<div class="d-flex flex-grow-1 align-items-center h-100">
-    				<nav class="navbar navbar-expand-lg me-2 p-0">
-    					<button class="navbar-toggler border w-40 h-40 px-1 fs-14 bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#header-menu" aria-controls="header-menu">
-				            <span class="navbar-toggler-icon"></span>
-				        </button>
-				    </nav>
-    				<div class="logo h-40">
-    					<a href="<?php _ec( base_url() )?>"><img src="<?php _ec( get_option("website_logo_color", base_url("assets/img/logo-color.svg")) )?>" class="h-100"></a>
-    				</div>
-    				
-    				<div class="flex-grow-1 h-100">
-    					<nav class="header-menu d-flex h-100 navbar navbar-expand-lg">
-					        <div class="collapse navbar-collapse justify-content-center" id="header-menu">
-					            <ul class="navbar-nav">
-					                <li class="nav-item">
-					                    <a class="nav-link mx-1 <?php _ec( uri("segment",1)==""?"active":"" )?>" aria-current="page" href="<?php _ec( base_url() )?>"><?php _e("Home")?></a>
-					                </li>
-					                <?php if ( count($platforms) > 1 ): ?>
-					                <li class="nav-item dropdown">
-					                    <a class="nav-link mx-1 dropdown-toggle <?php _ec( uri("segment",1)=="product"?"active":"" )?>" href="javascript:void(0);" id="header_sub_menu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-					                        <?php _e("Platforms")?>
-					                    </a>
-					                    <ul class="dropdown-menu" aria-labelledby="header_sub_menu">
-					                    	<?php foreach ($platforms as $platform): ?>
-					                        <li>
-					                        	<a class="dropdown-item" href="<?php _ec( base_url("product/".$platform->platform_id."/".slugify($platform->name)) )?>">
-				                        			<i class="<?php _e($platform->icon)?>" style="color: <?php _e($platform->color)?>;"></i>
-					                        		<span><?php _e($platform->name)?></span>
-					                        	</a>
-					                        </li>
-					                    	<?php endforeach ?>
-					                    </ul>
-					                </li>
-					                <?php else: ?>
-					                <li class="nav-item">
-					                    <a class="nav-link mx-1 click-menu" data-id="features" href="<?php _ec( uri("segment", 1) == ""?"":base_url() )?>#features"><?php _e("Features")?></a>
-					                </li>
-					                <?php endif ?>
-					                <?php if (find_modules("payment")): ?>
-					                <li class="nav-item">
-					                    <a class="nav-link mx-1 <?php _ec( uri("segment",1)=="pricing"?"active":"" )?>" href="<?php _ec( base_url("pricing") )?>"><?php _e("Pricing")?></a>
-					                </li>
-					                <?php endif ?>
-					                <li class="nav-item">
-					                    <a class="nav-link mx-1 <?php _ec( uri("segment",1)=="faqs"?"active":"" )?>" href="<?php _ec( base_url("faqs") )?>"><?php _e("FAQs")?></a>
-					                </li>
-					                <?php if (find_modules("blog_manager")): ?>
-					                <li class="nav-item">
-					                    <a class="nav-link mx-1 <?php _ec( uri("segment",1)=="blogs"?"active":"" )?>" href="<?php _ec( base_url("blogs") )?>"><?php _e("Blogs")?></a>
-					                </li>
-					                <?php endif ?>
-					                <li class="nav-item d-block d-md-block d-lg-none">
-					                    <a class="nav-link mx-1" href="<?php _ec( base_url("login") )?>"><?php _e("Login")?></a>
-					                </li>
-					                <li class="nav-item d-block d-md-block d-lg-none">
-					                    <a class="nav-link mx-1" href="<?php _ec( base_url("signup") )?>"><?php _e("Sign Up")?></a>
-					                </li>
-					            </ul>
-					        </div>
-						</nav>
-    				</div>
-    			</div>
-    			<div class="d-flex align-items-center">
-    				<?php $lang_data = load_language();?>
-					<?php if (!empty($lang_data) && isset($lang_data['result']) && !empty($lang_data['result'])): ?>
-					<?php
-					$result = $lang_data['result'];
-					$default = $lang_data['default'];
-					?>
-
-					<div class="ms-3 header-language">
-    					<div class="dropdown">
-		                    <a class="dropdown-toggle border b-r-100 w-30 h-30 d-block d-flex align-items-center justify-content-center fs-20" href="#" id="header_lang" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-		                        <i class="fal fa-globe"></i>
-		                    </a>
-		                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="header_lang">
-		                    	<?php foreach ($result as $key => $value): ?>
-		                        <li>
-		                        	<a class="dropdown-item actionItem d-flex justify-content-between align-items-center" href="<?php _ec( base_url("auth/language/".$value->ids) )?>" data-redirect="">
-			                        	<span class="me-3"><i class="<?php _ec($value->icon)?>"></i> <?php _ec($value->name)?></span>
-			                        	<?php if ($value->code == $default->code): ?>
-			                        		<span class="text-primary"><i class="fal fa-check"></i></span>
-			                        	<?php endif ?>
-			                        </a>
-			                    </li>
-		                        <?php endforeach ?>
-		                    </ul>
-		                </div>
-    				</div>
-					<?php endif ?>
-    				
-    				<div class="ms-3 d-none d-md-none d-lg-block">
-    					<a href="<?php _ec( base_url("login") )?>" class="text-dark"><?php _e("Login")?></a>
-    				</div>
-    				<div class="ms-3 d-none d-md-none d-lg-block">
-    					<a class="btn btn-primary b-r-60 btn-sm" href="<?php _ec( base_url("signup") )?>" ><?php _e("Sign Up")?></a>
-    				</div>
-    			</div>
-    		</div>
-    	</div>
-	</div>
-	<?php if (uri("segment", 1) != "" && uri("segment", 1) != "product"): ?>
-		<div class="header-overplay"></div>
-	<?php endif ?>
-
-    <div class="mih-1000">
-    	<?php _ec( $content )?>
+<body class="min-h-screen">
+<header class="bg-[#1a1a1a] fixed w-full z-50">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="#" class="text-3xl font-['Pacifico'] text-white">logo</a>
+        <nav class="hidden md:flex items-center space-x-8">
+            <a href="#features" class="text-gray-300 hover:text-white transition-colors">Features</a>
+            <a href="#studio" class="text-gray-300 hover:text-white transition-colors">AI Studio</a>
+            <a href="#promote" class="text-gray-300 hover:text-white transition-colors">Promote</a>
+            <a href="#affiliate" class="text-gray-300 hover:text-white transition-colors">Affiliate</a>
+            <a href="#about" class="text-gray-300 hover:text-white transition-colors">About</a>
+        </nav>
+        <div class="flex items-center space-x-4">
+            <a href="<?php _ec( base_url("login") )?>" class="text-gray-300 hover:text-white transition-colors"><?php _e("Login")?></a>
+            <a href="<?php _ec( base_url("signup") )?>" class="bg-primary text-white px-5 py-2 !rounded-button whitespace-nowrap glow-button"><?php _e("Sign Up")?></a>
+            <button class="md:hidden w-10 h-10 flex items-center justify-center text-white">
+                <i class="ri-menu-line ri-lg"></i>
+            </button>
+        </div>
     </div>
-    <div class="footer p-t-70 p-b-10">
-    	<div class="container">
-    		<div class="row">
-	    		<div class="col-md-5 mb-5">
-	    			<div class="h-40 mb-4">
-						<a href="<?php _ec( base_url() )?>"><img src="<?php _ec( get_option("website_logo_color", base_url("assets/img/logo-color.svg")) )?>" class="h-100"></a>
-					</div>
-					<div class="mw-400 mb-5 text-gray-700"><?php _e("Helping you execute a comprehensive marketing plan, manage your brands by scheduling your posts to optimize performance on many social media platforms")?></div>
-	    		</div>
-	    		<div class="col-md-7">
-	    			<div class="row">
-	    				<div class="col-md-4 mb-5">
-							<div class="fw-6 fs-18 mb-4"><?php _e("Quick Links")?></div>
-							<ul>
-								<li class="mb-2"><a class="text-gray-700" href="<?php _ec( base_url() )?>"><?php _e("Home")?></a></li>
-								<?php if ( count($platforms) <= 1 ): ?>
-								<li class="mb-2"><a class="text-gray-700 click-menu" data-id="features" href="<?php _ec( uri("segment", 1) == ""?"":base_url() )?>#features"><?php _e("Features")?></a></li>
-								<?php endif ?>
-								<?php if (find_modules("payment")): ?>
-								<li class="mb-2"><a class="text-gray-700" href="<?php _ec( base_url("pricing") )?>"><?php _e("Pricing")?></a></li>
-								<?php endif ?>
-								<li class="mb-2"><a class="text-gray-700" href="<?php _ec( uri("segment", 1) == ""?"":base_url() )?>#faqs"><?php _e("FAQs")?></a></li>
-								<?php if (find_modules("blog_manager")): ?>
-								<li class="mb-2"><a class="text-gray-700" href="<?php _ec( base_url("blogs") )?>"><?php _e("Blogs")?></a></li>
-								<?php endif ?>
-							</ul>
-	    				</div>
-	    				<div class="col-md-4 mb-5">
-	    					<div class="fw-6 fs-18 mb-4"><?php _e("Useful Links")?></div>
-							<ul>
-								<li class="mb-2"><a class="text-gray-700" href="<?php _ec( base_url("login") )?>"><?php _e("Login")?></a></li>
-								<li class="mb-2"><a class="text-gray-700" href="<?php _ec( base_url("signup") )?>"><?php _e("Signup")?></a></li>
-								<li class="mb-2"><a class="text-gray-700" href="<?php _ec( base_url("terms_of_service") )?>"><?php _e("Terms of Service")?></a></li>
-								<li class="mb-2"><a class="text-gray-700" href="<?php _ec( base_url("privacy_policy") )?>"><?php _e("Privacy Policy")?></a></li>
-							</ul>
-	    				</div>
-	    				<?php if ( 
-				            get_option("social_page_facebook", "") != "" ||
-				            get_option("social_page_twitter", "") != "" ||
-				            get_option("social_page_pinterest", "") != "" ||
-				            get_option("social_page_youtube", "") != "" ||
-				            get_option("social_page_tiktok", "") != "" ||
-			          	  get_option("social_page_instagram", "") != ""
-			          	): ?>
-			          	<div class="col-md-4 mb-5">
-							<div class="fw-6 fs-18 mb-4"><?php _e("Our channels")?></div>
-							<ul>
-								<?php if (get_option("social_page_facebook", "") != ""): ?>
-		                      		<li class="d-inline fs-30 me-3"><a href="<?php _ec( get_option("social_page_facebook", "") )?>" class="text-gray-600"> <i class="fab fa-facebook-f"></i> </a></li>
-			                    <?php endif ?>
-			                    <?php if (get_option("social_page_twitter", "") != ""): ?>
-			                    	<li class="d-inline fs-30 me-3"><a href="<?php _ec( get_option("social_page_twitter", "") )?>" class="text-gray-600"> <i class="fab fa-twitter"></i> </a></li>
-			                    <?php endif ?>
-			                    <?php if (get_option("social_page_tiktok", "") != ""): ?>
-			                    	<li class="d-inline fs-30 me-3"><a href="<?php _ec( get_option("social_page_tiktok", "") )?>" class="text-gray-600"> <i class="fab fa-tiktok"></i> </a></li>
-			                    <?php endif ?>
-			                    <?php if (get_option("social_page_pinterest", "") != ""): ?>
-			                    	<li class="d-inline fs-30 me-3"><a href="<?php _ec( get_option("social_page_pinterest", "") )?>" class="text-gray-600"> <i class="fab fa-pinterest-p"></i> </a></li>
-			                    <?php endif ?>
-			                    <?php if (get_option("social_page_youtube", "") != ""): ?>
-			                    	<li class="d-inline fs-30 me-3"><a href="<?php _ec( get_option("social_page_youtube", "") )?>" class="text-gray-600"> <i class="fab fa-youtube"></i> </a></li>
-			                    <?php endif ?>
-
-			                    <?php if (get_option("social_page_instagram", "") != ""): ?>
-			                    	<li class="d-inline fs-30 me-3"><a href="<?php _ec( get_option("social_page_instagram", "") )?>" class="text-gray-600"> <i class="fab fa-instagram"></i> </a></li>
-			                    <?php endif ?>
-							</ul>
-						</div>
-			          	<?php endif ?>
-	    			</div>
-	    		</div>
-	    	</div>
-
-	    	<div class="row border-top">
-	    		<div class="col-12">
-	    			<div class="px-3 fs-12 mt-2 text-center">
-	    				<?php _e("© Copyright 2024. All Rights Reserved")?>
-	    			</div>
-	    		</div>
-	    	</div>
-    	</div>
-	</div>
-
-    <!--JS-->
-	<script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/plugins/owlcarousel/js/owl.carousel.min.js"></script>
-	<script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-	<script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/plugins/limarquee/limarquee.js"></script>
-	<script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/plugins/ihavecookies/jquery.ihavecookies.js"></script>
-	<script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/plugins/pagination/pagination.min.js"></script>
-	<script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/plugins/aos/aos.js"></script>
-	<script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/plugins/marquee/marquee.min.js"></script>
-	<script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/plugins/anime/anime.min.js"></script>
-	<script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/plugins/countup/odometer.js"></script>
-	<script type="text/javascript" src="<?php _ec( get_frontend_url() )?>Assets/js/core.js"></script>
-
-	<?php if (get_option("gdpr_status", 1)): ?>
-    <script type="text/javascript">
-        $(function(){
-            $('body').ihavecookies({
-                title:"<?php _e("Cookies & Privacy")?>",
-                message:"<?php _e("We use cookies to ensure that we give you the best experience on our website. By clicking Accept or continuing to use our site, you consent to our use of cookies and our privacy policy. For more information, please read our privacy policy.")?>",
-                acceptBtnLabel:"<?php _e("Accept cookies")?>",
-                advancedBtnLabel:"<?php _e("Customize cookies")?>",
-                moreInfoLabel: "<?php _e("More information")?>",
-                cookieTypesTitle: "<?php _e("Select cookies to accept")?>",
-                fixedCookieTypeLabel: "<?php _e("Necessary")?>",
-                fixedCookieTypeDesc: "<?php _e("These are cookies that are essential for the website to work correctly.")?>",
-                link: '<?php _ec( base_url("privacy_policy") )?>',
-                expires: 30,
-                cookieTypes: [
-                {
-                    type: '<?php _e("Site Preferences")?>',
-                    value: 'preferences',
-                    description: '<?php _e("These are cookies that are related to your site preferences, e.g. remembering your username, site colours, etc.")?>'
-                },
-                {
-                    type: '<?php _e("Analytics")?>',
-                    value: 'analytics',
-                    description: '<?php _e("Cookies related to site visits, browser types, etc.")?>'
-                },
-                {
-                    type: '<?php _e("Marketing")?>',
-                    value: 'marketing',
-                    description: '<?php _e("Cookies related to marketing, e.g. newsletters, social media, etc")?>'
-                }
-            ],
+</header>
+<section class="hero-bg pt-32 pb-20">
+    <div class="container mx-auto px-6">
+        <div class="flex flex-col md:flex-row items-center">
+            <div class="w-full md:w-1/2 mb-12 md:mb-0">
+                <h1 class="heading-font text-5xl md:text-6xl font-bold mb-6 leading-tight">Hum. Create. Earn.</h1>
+                <p class="text-xl text-gray-300 mb-8">Turn your voice into AI music. Promote it. Let others help you go viral.</p>
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                    <a href="#studio" class="bg-primary text-white px-8 py-4 !rounded-button text-center whitespace-nowrap glow-button">Start Creating</a>
+                    <a href="#affiliate" class="bg-transparent border border-white text-white px-8 py-4 !rounded-button text-center whitespace-nowrap hover:bg-white/10 transition-colors">Join as Affiliate</a>
+                </div>
+            </div>
+            <div class="w-full md:w-1/2 flex justify-center">
+                <div class="relative w-full max-w-md">
+                    <div class="waveform mb-6"></div>
+                    <div class="glass-card p-6 !rounded-lg">
+                        <div class="flex items-center justify-center mb-4">
+                            <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                                <i class="ri-mic-line ri-xl text-primary"></i>
+                            </div>
+                        </div>
+                        <p class="text-center text-gray-300 mb-4">Tap to start humming</p>
+                        <div class="flex justify-center">
+                            <button class="bg-primary text-white px-6 py-2 !rounded-button whitespace-nowrap glow-button">Start Recording</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section id="features" class="py-20 bg-[#0f0f0f]">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="heading-font text-4xl font-bold mb-4">How It Works</h2>
+            <p class="text-xl text-gray-300 max-w-3xl mx-auto">Our AI-powered platform makes music creation accessible to everyone, regardless of musical background.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="feature-card p-8 !rounded-lg">
+                <div class="w-16 h-16 !rounded-lg bg-primary/20 flex items-center justify-center mb-6">
+                    <i class="ri-mic-line ri-xl text-primary"></i>
+                </div>
+                <h3 class="heading-font text-2xl font-bold mb-4">Hum & Generate</h3>
+                <p class="text-gray-300">Just hum your melody into the mic and our AI will transform it into a fully produced track with instruments, beats, and harmonies.</p>
+            </div>
+            <div class="feature-card p-8 !rounded-lg">
+                <div class="w-16 h-16 !rounded-lg bg-primary/20 flex items-center justify-center mb-6">
+                    <i class="ri-line-chart-line ri-xl text-primary"></i>
+                </div>
+                <h3 class="heading-font text-2xl font-bold mb-4">Promote Tracks</h3>
+                <p class="text-gray-300">Boost your music's visibility with promotion credits. Get featured on trending lists and reach more listeners.</p>
+            </div>
+            <div class="feature-card p-8 !rounded-lg">
+                <div class="w-16 h-16 !rounded-lg bg-primary/20 flex items-center justify-center mb-6">
+                    <i class="ri-money-dollar-circle-line ri-xl text-primary"></i>
+                </div>
+                <h3 class="heading-font text-2xl font-bold mb-4">Earn by Sharing</h3>
+                <p class="text-gray-300">Join our affiliate program and earn commissions when your shared songs get played. Turn your influence into income.</p>
+            </div>
+        </div>
+    </div>
+</section>
+<section id="studio" class="py-20 bg-[#1a1a1a]">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="heading-font text-4xl font-bold mb-4">AI Studio</h2>
+            <p class="text-xl text-gray-300 max-w-3xl mx-auto">Create professional-quality music with just your voice. Our AI handles the rest.</p>
+        </div>
+        <div class="max-w-4xl mx-auto glass-card p-8 !rounded-lg">
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-1/2">
+                    <div class="mb-6">
+                        <div class="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="ri-mic-line ri-2x text-primary"></i>
+                        </div>
+                        <p class="text-center text-gray-300">Tap to start recording</p>
+                    </div>
+                    <div class="waveform mb-6"></div>
+                    <div class="flex justify-center space-x-4">
+                        <button class="bg-primary text-white px-6 py-3 !rounded-button whitespace-nowrap glow-button">Record</button>
+                        <button class="bg-transparent border border-white text-white px-6 py-3 !rounded-button whitespace-nowrap hover:bg-white/10 transition-colors">Upload Audio</button>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2">
+                    <h3 class="heading-font text-2xl font-bold mb-4">Style Settings</h3>
+                    <div class="mb-6">
+                        <label class="block text-gray-300 mb-2">Genre</label>
+                        <div class="relative">
+                            <select class="w-full bg-[#2a2a2a] border border-gray-700 !rounded-lg px-4 py-3 text-white appearance-none pr-8">
+                                <option>Pop</option>
+                                <option>Hip Hop</option>
+                                <option>Electronic</option>
+                                <option>Rock</option>
+                                <option>R&B</option>
+                            </select>
+                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <i class="ri-arrow-down-s-line ri-lg text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-300 mb-2">Mood</label>
+                        <div class="relative">
+                            <select class="w-full bg-[#2a2a2a] border border-gray-700 !rounded-lg px-4 py-3 text-white appearance-none pr-8">
+                                <option>Energetic</option>
+                                <option>Chill</option>
+                                <option>Melancholic</option>
+                                <option>Happy</option>
+                                <option>Dark</option>
+                            </select>
+                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <i class="ri-arrow-down-s-line ri-lg text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-300 mb-2">Tempo: <span id="tempoValue">120</span> BPM</label>
+                        <input type="range" min="60" max="180" value="120" class="w-full" id="tempoSlider">
+                    </div>
+                    <button class="w-full bg-primary text-white px-6 py-3 !rounded-button whitespace-nowrap glow-button mt-4">Generate Track</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section id="trending" class="py-20 bg-[#0f0f0f]">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="heading-font text-4xl font-bold mb-4">Trending Songs</h2>
+            <p class="text-xl text-gray-300 max-w-3xl mx-auto">Discover what's hot right now. Listen to the most popular AI-generated tracks.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="song-card p-6 !rounded-lg">
+                <div class="relative mb-4 rounded-lg overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=abstract%20music%20visualizer%20with%20neon%20blue%20and%20purple%20waves%20on%20dark%20background%2C%20electronic%20music%20concept%20art%2C%20minimalist%20design%2C%20high%20quality%2C%20digital%20art&width=400&height=300&seq=2&orientation=landscape" alt="Song thumbnail" class="w-full h-48 object-cover object-top">
+                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                        <button class="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center">
+                            <i class="ri-play-fill ri-xl text-white"></i>
+                        </button>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 !rounded-full">Promoted</div>
+                </div>
+                <h3 class="heading-font text-xl font-bold mb-1">Neon Dreams</h3>
+                <p class="text-gray-400 mb-3">by Olivia Reynolds</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 flex items-center justify-center text-gray-400 mr-3">
+                            <i class="ri-play-line ri-lg"></i>
+                        </div>
+                        <span class="text-gray-400">24.5K</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 flex items-center justify-center text-gray-400 mr-1">
+                            <i class="ri-heart-line ri-lg"></i>
+                        </div>
+                        <span class="text-gray-400">1.2K</span>
+                    </div>
+                </div>
+            </div>
+            <div class="song-card p-6 !rounded-lg">
+                <div class="relative mb-4 rounded-lg overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=abstract%20sound%20wave%20visualization%20in%20dark%20purple%20and%20teal%2C%20futuristic%20audio%20spectrum%2C%20digital%20music%20concept%2C%20high%20quality%2C%20minimalist%20design&width=400&height=300&seq=3&orientation=landscape" alt="Song thumbnail" class="w-full h-48 object-cover object-top">
+                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                        <button class="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center">
+                            <i class="ri-play-fill ri-xl text-white"></i>
+                        </button>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-secondary text-white text-xs px-2 py-1 !rounded-full">AI Hit</div>
+                </div>
+                <h3 class="heading-font text-xl font-bold mb-1">Midnight Echo</h3>
+                <p class="text-gray-400 mb-3">by Marcus Chen</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 flex items-center justify-center text-gray-400 mr-3">
+                            <i class="ri-play-line ri-lg"></i>
+                        </div>
+                        <span class="text-gray-400">18.7K</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 flex items-center justify-center text-gray-400 mr-1">
+                            <i class="ri-heart-line ri-lg"></i>
+                        </div>
+                        <span class="text-gray-400">942</span>
+                    </div>
+                </div>
+            </div>
+            <div class="song-card p-6 !rounded-lg">
+                <div class="relative mb-4 rounded-lg overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=abstract%20digital%20audio%20waveform%20visualization%20with%20neon%20blue%20and%20magenta%20colors%20on%20black%20background%2C%20futuristic%20music%20concept%20art%2C%20high%20quality%2C%20minimalist%20design&width=400&height=300&seq=4&orientation=landscape" alt="Song thumbnail" class="w-full h-48 object-cover object-top">
+                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                        <button class="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center">
+                            <i class="ri-play-fill ri-xl text-white"></i>
+                        </button>
+                    </div>
+                </div>
+                <h3 class="heading-font text-xl font-bold mb-1">Electric Soul</h3>
+                <p class="text-gray-400 mb-3">by Sophia Williams</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 flex items-center justify-center text-gray-400 mr-3">
+                            <i class="ri-play-line ri-lg"></i>
+                        </div>
+                        <span class="text-gray-400">15.3K</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 flex items-center justify-center text-gray-400 mr-1">
+                            <i class="ri-heart-line ri-lg"></i>
+                        </div>
+                        <span class="text-gray-400">876</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-12">
+            <a href="#" class="bg-transparent border border-white text-white px-8 py-3 !rounded-button whitespace-nowrap hover:bg-white/10 transition-colors">View All Trending</a>
+        </div>
+    </div>
+</section>
+<section id="promote" class="py-20 bg-[#1a1a1a]">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="heading-font text-4xl font-bold mb-4">Promote Your Music</h2>
+            <p class="text-xl text-gray-300 max-w-3xl mx-auto">Boost your visibility and reach more listeners with our promotion system.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div class="glass-card p-8 !rounded-lg">
+                <div class="text-center mb-6">
+                    <h3 class="heading-font text-2xl font-bold mb-2">Basic</h3>
+                    <div class="text-4xl font-bold text-primary mb-1">$5</div>
+                    <p class="text-gray-400">100 Credits</p>
+                </div>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">24-hour trending boost</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">Featured in "New Releases"</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">Basic analytics access</span>
+                    </li>
+                </ul>
+                <button class="w-full bg-primary text-white px-6 py-3 !rounded-button whitespace-nowrap glow-button">Buy Credits</button>
+            </div>
+            <div class="glass-card p-8 !rounded-lg relative border border-primary">
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-white px-4 py-1 !rounded-full text-sm">Most Popular</div>
+                <div class="text-center mb-6">
+                    <h3 class="heading-font text-2xl font-bold mb-2">Pro</h3>
+                    <div class="text-4xl font-bold text-primary mb-1">$20</div>
+                    <p class="text-gray-400">500 Credits</p>
+                </div>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">72-hour trending boost</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">Featured on homepage</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">Influencer playlist inclusion</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">Full analytics dashboard</span>
+                    </li>
+                </ul>
+                <button class="w-full bg-primary text-white px-6 py-3 !rounded-button whitespace-nowrap glow-button">Buy Credits</button>
+            </div>
+            <div class="glass-card p-8 !rounded-lg">
+                <div class="text-center mb-6">
+                    <h3 class="heading-font text-2xl font-bold mb-2">Premium</h3>
+                    <div class="text-4xl font-bold text-primary mb-1">$50</div>
+                    <p class="text-gray-400">1500 Credits</p>
+                </div>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">7-day trending boost</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">Featured on homepage (premium spot)</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">Top influencer promotion</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">Advanced analytics & insights</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="w-6 h-6 flex items-center justify-center text-primary mr-2 mt-0.5">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <span class="text-gray-300">Priority customer support</span>
+                    </li>
+                </ul>
+                <button class="w-full bg-primary text-white px-6 py-3 !rounded-button whitespace-nowrap glow-button">Buy Credits</button>
+            </div>
+        </div>
+    </div>
+</section>
+<section id="affiliate" class="py-20 bg-[#0f0f0f]">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="heading-font text-4xl font-bold mb-4">Become a Music Affiliate</h2>
+            <p class="text-xl text-gray-300 max-w-3xl mx-auto">Share songs and earn commissions when they get played. Turn your influence into income.</p>
+        </div>
+        <div class="max-w-5xl mx-auto">
+            <div class="glass-card p-8 !rounded-lg mb-12">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="w-full md:w-1/2">
+                        <h3 class="heading-font text-2xl font-bold mb-4">Commission Structure</h3>
+                        <p class="text-gray-300 mb-6">Earn between $0.15–$0.50 per 1,000 plays of your shared songs. The more plays, the higher your rate!</p>
+                        <div class="mb-6">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-400">1K-10K plays</span>
+                                <span class="text-white">$0.15 per 1K</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-2 !rounded-full">
+                                <div class="bg-primary h-full !rounded-full" style="width: 30%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-400">10K-50K plays</span>
+                                <span class="text-white">$0.25 per 1K</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-2 !rounded-full">
+                                <div class="bg-primary h-full !rounded-full" style="width: 50%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-400">50K+ plays</span>
+                                <span class="text-white">$0.50 per 1K</span>
+                            </div>
+                            <div class="w-full bg-gray-700 h-2 !rounded-full">
+                                <div class="bg-primary h-full !rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <h3 class="heading-font text-2xl font-bold mb-4">How It Works</h3>
+                        <div class="flex items-start mb-6">
+                            <div class="w-10 h-10 !rounded-full bg-primary/20 flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                <span class="text-primary font-bold">1</span>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-1">Claim a Song</h4>
+                                <p class="text-gray-300">Browse our library and claim songs you want to promote.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start mb-6">
+                            <div class="w-10 h-10 !rounded-full bg-primary/20 flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                <span class="text-primary font-bold">2</span>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-1">Share Your Link</h4>
+                                <p class="text-gray-300">Share your unique affiliate link on social media, websites, or with your audience.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 !rounded-full bg-primary/20 flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                <span class="text-primary font-bold">3</span>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-semibold mb-1">Track Earnings</h4>
+                                <p class="text-gray-300">Monitor your performance and earnings in real-time through your dashboard.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center">
+                <a href="#" class="bg-primary text-white px-10 py-4 !rounded-button inline-block text-lg whitespace-nowrap glow-button">Join Affiliate Program</a>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="py-20 bg-[#1a1a1a]">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="heading-font text-4xl font-bold mb-4">Ready to Create?</h2>
+            <p class="text-xl text-gray-300 max-w-3xl mx-auto">Join thousands of creators who are already making music with our AI platform.</p>
+        </div>
+        <div class="max-w-md mx-auto">
+            <form class="glass-card p-8 !rounded-lg">
+                <div class="mb-6">
+                    <label class="block text-gray-300 mb-2">Email</label>
+                    <input type="email" class="w-full bg-[#2a2a2a] border border-gray-700 !rounded-lg px-4 py-3 text-white" placeholder="your@email.com">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-300 mb-2">Password</label>
+                    <input type="password" class="w-full bg-[#2a2a2a] border border-gray-700 !rounded-lg px-4 py-3 text-white" placeholder="••••••••">
+                </div>
+                <div class="flex items-center mb-6">
+                    <div class="custom-checkbox mr-3" id="termsCheckbox"></div>
+                    <label class="text-gray-300 text-sm">I agree to the <a href="#" class="text-primary">Terms of Service</a> and <a href="#" class="text-primary">Privacy Policy</a></label>
+                </div>
+                <button type="submit" class="w-full bg-primary text-white px-6 py-3 !rounded-button whitespace-nowrap glow-button">Create Free Account</button>
+                <div class="text-center mt-6 text-gray-400">
+                    Already have an account? <a href="#" class="text-primary">Sign In</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+<section id="about" class="py-20 about-bg bg-[#0f0f0f]">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="heading-font text-4xl font-bold mb-4">About Us</h2>
+        </div>
+        <div class="max-w-3xl mx-auto">
+            <p class="text-lg text-gray-300 mb-6 leading-relaxed">We believe music creation should be intuitive, accessible, and limitless. Our mission is to empower everyone — from casual singers to professional artists — to express themselves with the help of AI.</p>
+            <p class="text-lg text-gray-300 mb-6 leading-relaxed">Our platform combines real-time voice-to-music technology, artist promotion tools, and influencer-powered distribution to bring a new era of collaborative sound creation.</p>
+            <p class="text-lg text-gray-300 mb-10 leading-relaxed">Founded by a team of musicians, technologists, and designers, we're building the tools for the next generation of creators.</p>
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-10">
+                <a href="#studio" class="bg-primary text-white px-8 py-4 !rounded-button text-center whitespace-nowrap glow-button">Start Creating</a>
+                <a href="#affiliate" class="bg-secondary text-white px-8 py-4 !rounded-button text-center whitespace-nowrap glow-button-secondary">Join Affiliate Program</a>
+            </div>
+        </div>
+    </div>
+</section>
+<footer class="bg-[#0f0f0f] py-16 border-t border-gray-800">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="col-span-1 md:col-span-1">
+                <a href="#" class="text-3xl font-['Pacifico'] text-white mb-4 inline-block">logo</a>
+                <p class="text-gray-400 mb-6">Transform your voice into fully produced music with our AI-powered platform.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="w-10 h-10 !rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                        <i class="ri-twitter-x-line"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 !rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                        <i class="ri-instagram-line"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 !rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                        <i class="ri-tiktok-line"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 !rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                        <i class="ri-youtube-line"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-4">Product</h4>
+                <ul class="space-y-2">
+                    <li><a href="#features" class="text-gray-400 hover:text-white transition-colors">Features</a></li>
+                    <li><a href="#studio" class="text-gray-400 hover:text-white transition-colors">AI Studio</a></li>
+                    <li><a href="#promote" class="text-gray-400 hover:text-white transition-colors">Promotion</a></li>
+                    <li><a href="#affiliate" class="text-gray-400 hover:text-white transition-colors">Affiliate Program</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-4">Company</h4>
+                <ul class="space-y-2">
+                    <li><a href="#about" class="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Careers</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Press</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-4">Legal</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Terms of Service</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Cookie Policy</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Copyright</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p class="text-gray-500 mb-4 md:mb-0">© 2025 AI Music Platform. All rights reserved.</p>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center">
+                    <i class="ri-visa-fill ri-lg text-gray-400 mr-2"></i>
+                    <i class="ri-mastercard-fill ri-lg text-gray-400 mr-2"></i>
+                    <i class="ri-paypal-fill ri-lg text-gray-400 mr-2"></i>
+                    <i class="ri-apple-fill ri-lg text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<script id="tempoSlider">
+    document.addEventListener('DOMContentLoaded', function() {
+        const tempoSlider = document.getElementById('tempoSlider');
+        const tempoValue = document.getElementById('tempoValue');
+        if (tempoSlider && tempoValue) {
+            tempoSlider.addEventListener('input', function() {
+                tempoValue.textContent = this.value;
+            });
+        }
+    });
+</script>
+<script id="customCheckbox">
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkbox = document.getElementById('termsCheckbox');
+        if (checkbox) {
+            checkbox.addEventListener('click', function() {
+                this.classList.toggle('checked');
+            });
+        }
+    });
+</script>
+<script id="customSwitch">
+    document.addEventListener('DOMContentLoaded', function() {
+        const switches = document.querySelectorAll('.custom-switch');
+        switches.forEach(switchEl => {
+            switchEl.addEventListener('click', function() {
+                this.classList.toggle('active');
             });
         });
-    </script>
-    <?php endif ?>
-
+    });
+</script>
 </body>
 </html>
