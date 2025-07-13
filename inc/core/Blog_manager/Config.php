@@ -2,7 +2,7 @@
 return [
     'id' => 'blog_manager',
     'folder' => 'core',
-    'name' => 'Blog',
+    'name' => 'Distrokid Data Import',
     'author' => 'Stackcode',
     'author_uri' => 'https://stackposts.com',
     'desc' => 'Customize system interface',
