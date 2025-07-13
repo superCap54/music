@@ -210,7 +210,7 @@ class WorkflowsModel extends Model
         int $userId,
         int $workflowId,
         array $customConfig = [],
-        bool $isEnabled = true
+        bool $isEnabled = false
     ): int|false
     {
         // 检查是否已存在关联

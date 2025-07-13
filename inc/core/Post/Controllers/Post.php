@@ -205,6 +205,38 @@ class Post extends \CodeIgniter\Controller
         }
     }
 
+    public function update_workflow_schedule() {
+        $request = service('request');
+        $data = $request->getJSON(true);
+
+        $workflowId = $data['workflow_id'];
+        $scheduleType = $data['schedule_type'];
+
+        // 根据不同类型处理
+        switch($scheduleType) {
+            case 'daily':
+                $time = $data['time'];
+                // 保存每日调度逻辑...
+                break;
+
+            case 'weekly':
+                $time = $data['time'];
+                $days = $data['days']; // 数组形式
+                // 保存每周调度逻辑...
+                break;
+
+            case 'once':
+                $datetime = $data['datetime'];
+                // 保存一次性调度逻辑...
+                break;
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Schedule updated successfully'
+        ]);
+    }
+
     public function url_info()
     {
         $url = post("url");

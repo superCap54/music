@@ -336,7 +336,9 @@
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <?php foreach ($workflows as $workflow){ ?>
-            <div class="neumorphic rounded-2xl workflow-card" style="padding: 1.5rem;" data-status="<?= $workflow['user_is_enabled'] ? 'active' : 'paused' ?>">
+            <div class="neumorphic rounded-2xl workflow-card" style="padding: 1.5rem;"
+                 data-status="<?= $workflow['user_is_enabled'] ? 'active' : 'paused' ?>"
+                 data-remark="<?= htmlspecialchars($workflow['remark'] ?? '') ?>">
                 <div class="flex justify-between items-start" style="margin-bottom: 1rem;">
                     <div class="flex items-center gap-2">
                         <div class="w-6 h-6 flex items-center justify-center">
@@ -396,6 +398,7 @@
                             </div>
                         </div>
                     </div>
+                    <?php if(!empty($workflow['user_workflow_id'])): //有数据才显示enabled按钮 ?>
                     <div>
                         <input type="checkbox"
                             <?php if($workflow['user_is_enabled']){ echo "checked";} ?>
@@ -404,6 +407,7 @@
                                data-workflow-id="<?php echo $workflow['workflow_id']; ?>">
                         <label for="toggle<?php echo $workflow['workflow_id']; ?>" class="toggle-switch block cursor-pointer"></label>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php } ?>
@@ -433,11 +437,14 @@
                 <div id="dynamicConfigContainer" class="space-y-4">
                     <!-- 这里将通过JavaScript动态渲染config_schema -->
                 </div>
+                <div id="workflowRemark" class="hidden text-sm text-gray-500 italic">
+                    <!-- 这里显示remark字段 -->
+                </div>
             </div>
 
             <!-- 操作按钮 -->
             <div class="mt-8 flex justify-end space-x-3">
-                <button onclick="closeModal()" class="neumorphic-button !rounded-button px-5 py-2 text-gray-600">Cancel</button>
+                <button onclick="closeConfigModal()" class="neumorphic-button !rounded-button px-5 py-2 text-gray-600">Cancel</button>
                 <button onclick="saveConfig()" class="neumorphic-button !rounded-button px-5 py-2 bg-primary text-white">Save Configuration</button>
             </div>
         </div>
@@ -502,7 +509,10 @@
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-medium mb-2">Run on</label>
                     <div class="datetime-input">
-                        <input type="datetime-local" class="neumorphic-inset w-full px-4 py-2 rounded-lg" id="onceDateTime">
+                        <input type="datetime-local"
+                               class="neumorphic-inset w-full px-4 py-2 rounded-lg"
+                               id="onceDateTime"
+                               min="<?php echo date('Y-m-d\TH:i', strtotime('+1 minute')); ?>">
                     </div>
                 </div>
             </div>
@@ -683,86 +693,96 @@
     function openConfigModal(configData) {
         const modal = document.getElementById('configureModal');
         const dynamicConfigContainer = document.getElementById('dynamicConfigContainer');
+        const workflowRemark = document.getElementById('workflowRemark');
 
         // 清空容器
         dynamicConfigContainer.innerHTML = '';
+        workflowRemark.innerHTML = '';
 
-        // 动态生成表单控件
-        configData.forEach((field) => {
-            const fieldWrapper = document.createElement('div');
-            fieldWrapper.className = 'mb-4';
+        // 获取当前工作流卡片的 remark 数据
+        const workflowCard = modal.closest('.workflow-card') || document.querySelector('.workflow-card[data-workflow-id="' + modal.getAttribute('data-workflow-id') + '"]');
+        const remark = workflowCard ? workflowCard.getAttribute('data-remark') : '';
 
-            // 创建标签
-            const label = document.createElement('label');
-            label.className = 'block text-sm font-medium text-gray-600 mb-1';
-            label.textContent = field.name;
+        if (!configData || configData.length === 0) {
+            dynamicConfigContainer.classList.add('hidden');
+            workflowRemark.classList.remove('hidden');
+            workflowRemark.textContent = remark || 'No configuration settings available for this workflow.';
+        } else {
+            dynamicConfigContainer.classList.remove('hidden');
+            workflowRemark.classList.add('hidden');
+            // 动态生成表单控件
+            configData.forEach((field) => {
+                const fieldWrapper = document.createElement('div');
+                fieldWrapper.className = 'mb-4';
 
-            // 根据类型创建不同的输入控件
-            let input;
-            if (field.type === 'text' || field.type === 'number') {
-                input = document.createElement('input');
-                input.type = field.type;
-                input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
-                input.placeholder = `Enter ${field.name}`;
-                input.value = field.value || '';
-            }
-            else if (field.type === 'textarea') {
-                input = document.createElement('textarea');
-                input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
-                input.placeholder = `Enter ${field.name}`;
-                input.value = field.value || '';
-                input.rows = 3;
-            }
-            else if (field.type === 'select') {
-                input = document.createElement('select');
-                input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
+                // 创建标签
+                const label = document.createElement('label');
+                label.className = 'block text-sm font-medium text-gray-600 mb-1';
+                label.textContent = field.name;
 
-                if (field.options && Array.isArray(field.options)) {
-                    field.options.forEach(option => {
-                        const optionElement = document.createElement('option');
-                        optionElement.value = option.value;
-                        optionElement.textContent = option.label;
-                        if (option.value === field.value) {
-                            optionElement.selected = true;
-                        }
-                        input.appendChild(optionElement);
-                    });
+                // 根据类型创建不同的输入控件
+                let input;
+                if (field.type === 'text' || field.type === 'number') {
+                    input = document.createElement('input');
+                    input.type = field.type;
+                    input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
+                    input.placeholder = `Enter ${field.name}`;
+                    input.value = field.value || '';
+                } else if (field.type === 'textarea') {
+                    input = document.createElement('textarea');
+                    input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
+                    input.placeholder = `Enter ${field.name}`;
+                    input.value = field.value || '';
+                    input.rows = 3;
+                } else if (field.type === 'select') {
+                    input = document.createElement('select');
+                    input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
+
+                    if (field.options && Array.isArray(field.options)) {
+                        field.options.forEach(option => {
+                            const optionElement = document.createElement('option');
+                            optionElement.value = option.value;
+                            optionElement.textContent = option.label;
+                            if (option.value === field.value) {
+                                optionElement.selected = true;
+                            }
+                            input.appendChild(optionElement);
+                        });
+                    }
+                } else if (field.type === 'checkbox') {
+                    const checkboxWrapper = document.createElement('div');
+                    checkboxWrapper.className = 'flex items-center';
+
+                    input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.className = 'mr-2';
+                    input.checked = field.value || false;
+
+                    const checkboxLabel = document.createElement('label');
+                    checkboxLabel.className = 'text-sm text-gray-600';
+                    checkboxLabel.textContent = field.name;
+
+                    checkboxWrapper.appendChild(input);
+                    checkboxWrapper.appendChild(checkboxLabel);
+                    fieldWrapper.appendChild(checkboxWrapper);
+                } else {
+                    // 默认文本输入
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
+                    input.placeholder = `Enter ${field.name}`;
+                    input.value = field.value || '';
                 }
-            }
-            else if (field.type === 'checkbox') {
-                const checkboxWrapper = document.createElement('div');
-                checkboxWrapper.className = 'flex items-center';
 
-                input = document.createElement('input');
-                input.type = 'checkbox';
-                input.className = 'mr-2';
-                input.checked = field.value || false;
+                // 如果不是复选框，添加标签和输入控件
+                if (field.type !== 'checkbox') {
+                    fieldWrapper.appendChild(label);
+                    fieldWrapper.appendChild(input);
+                }
 
-                const checkboxLabel = document.createElement('label');
-                checkboxLabel.className = 'text-sm text-gray-600';
-                checkboxLabel.textContent = field.name;
-
-                checkboxWrapper.appendChild(input);
-                checkboxWrapper.appendChild(checkboxLabel);
-                fieldWrapper.appendChild(checkboxWrapper);
-            }
-            else {
-                // 默认文本输入
-                input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'neumorphic-inset w-full px-4 py-2 rounded-lg';
-                input.placeholder = `Enter ${field.name}`;
-                input.value = field.value || '';
-            }
-
-            // 如果不是复选框，添加标签和输入控件
-            if (field.type !== 'checkbox') {
-                fieldWrapper.appendChild(label);
-                fieldWrapper.appendChild(input);
-            }
-
-            dynamicConfigContainer.appendChild(fieldWrapper);
-        });
+                dynamicConfigContainer.appendChild(fieldWrapper);
+            });
+        }
 
         // 显示模态框
         modal.classList.remove('hidden');
@@ -776,9 +796,70 @@
     }
 
     function saveConfig() {
-        // 这里添加保存配置的逻辑
-        console.log('Saving configuration...');
-        closeConfigModal();
+        // 获取模态框中的表单数据
+        const formInputs = document.querySelectorAll('#dynamicConfigContainer input, #dynamicConfigContainer select, #dynamicConfigContainer textarea');
+        const configData = {};
+
+        formInputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                configData[input.name || input.id] = input.checked;
+            } else {
+                configData[input.name || input.id] = input.value;
+            }
+        });
+
+        // 获取工作流ID - 需要确保在打开模态框时设置了data-workflow-id
+        const modal = document.getElementById('configureModal');
+        const workflowId = modal.getAttribute('data-workflow-id');
+
+        if (!workflowId) {
+            alert('Workflow ID is missing');
+            return;
+        }
+
+        // 显示加载状态
+        const saveBtn = document.querySelector('#configureModal button[onclick="saveConfig()"]');
+        const originalText = saveBtn.textContent;
+        saveBtn.innerHTML = '<i class="ri-loader-4-line animate-spin mr-2"></i>Saving...';
+        saveBtn.disabled = true;
+
+        // 发送AJAX请求
+        fetch('/post/update_workflow', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo csrf_token(); ?>'
+            },
+            body: JSON.stringify({
+                workflow_id: workflowId,
+                custom_config: configData
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // 显示成功消息
+                    showSuccessMessage('Configuration saved successfully');
+                    // 关闭模态框
+                    closeConfigModal();
+                } else {
+                    throw new Error(data.message || 'Failed to save configuration');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving configuration: ' + error.message);
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            });
     }
 
     // ==================== 调度模态框 ====================
@@ -823,31 +904,73 @@
         const workflowId = modal.getAttribute('data-workflow-id');
         const scheduleType = document.getElementById('scheduleTypeSelect').value;
 
+        // 准备要发送的数据
         let scheduleData = {
             workflow_id: workflowId,
-            type: scheduleType
+            schedule_type: scheduleType
         };
 
+        // 根据不同类型收集数据
         switch(scheduleType) {
             case 'daily':
-                scheduleData.time = document.getElementById('dailyTime').value;
+                const dailyTime = document.getElementById('dailyTime').value;
+                if (!dailyTime) {
+                    alert('Please select a time for daily schedule');
+                    return;
+                }
+                scheduleData.time = dailyTime;
+                scheduleData.days = null;
+                scheduleData.datetime = null;
                 break;
 
             case 'weekly':
-                scheduleData.days = [];
-                document.querySelectorAll('.day-pill.selected').forEach(pill => {
-                    scheduleData.days.push(pill.getAttribute('data-day'));
-                });
-                scheduleData.time = document.getElementById('weeklyTime').value;
+                const weeklyTime = document.getElementById('weeklyTime').value;
+                const selectedDays = Array.from(document.querySelectorAll('.day-pill.selected'))
+                    .map(pill => pill.getAttribute('data-day'));
+
+                if (!weeklyTime) {
+                    alert('Please select a time for weekly schedule');
+                    return;
+                }
+                if (selectedDays.length === 0) {
+                    alert('Please select at least one day for weekly schedule');
+                    return;
+                }
+
+                scheduleData.time = weeklyTime;
+                scheduleData.days = selectedDays;
+                scheduleData.datetime = null;
                 break;
 
             case 'once':
-                scheduleData.datetime = document.getElementById('onceDateTime').value;
+                const onceDateTime = document.getElementById('onceDateTime').value;
+                if (!onceDateTime) {
+                    alert('Please select a date and time for one-time schedule');
+                    return;
+                }
+
+                // 检查是否选择了未来的时间
+                const selectedDate = new Date(onceDateTime);
+                const now = new Date();
+                if (selectedDate <= now) {
+                    alert('Please select a future date and time');
+                    return;
+                }
+
+                scheduleData.time = null;
+                scheduleData.days = null;
+                scheduleData.datetime = onceDateTime;
                 break;
         }
 
+        // 显示加载状态
+        const saveBtn = document.querySelector('#schedulingModal button[onclick="saveSchedule()"]');
+        const originalText = saveBtn.textContent;
+        saveBtn.innerHTML = '<i class="ri-loader-4-line animate-spin mr-2"></i>Saving...';
+        saveBtn.disabled = true;
+
         // 发送AJAX请求
-        fetch('/workflow/save_schedule', {
+        fetch('/post/update_workflow_schedule', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -855,18 +978,47 @@
             },
             body: JSON.stringify(scheduleData)
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
+                    // 显示成功消息
+                    showSuccessMessage('Schedule saved successfully');
+                    // 关闭模态框
                     closeSchedulingModal();
-                    alert('Schedule saved successfully!');
                 } else {
-                    alert('Failed to save schedule: ' + (data.message || 'Unknown error'));
+                    throw new Error(data.message || 'Failed to save schedule');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while saving schedule.');
+                alert('Error saving schedule: ' + error.message);
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
             });
+    }
+
+    // 辅助函数：显示成功消息
+    function showSuccessMessage(message) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center';
+        toast.innerHTML = `
+        <i class="ri-checkbox-circle-line mr-2"></i>
+        <span>${message}</span>
+    `;
+        document.body.appendChild(toast);
+
+        // 3秒后自动消失
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 </script>
