@@ -63,13 +63,13 @@ class Post extends \CodeIgniter\Controller
 
 //      重新索引数组（如果进行了过滤）
         $workflowsWithStatus = array_values($workflowsWithStatus);
-        $post = db_get( "*", TB_POSTS, [ "ids" => $post_id, "team_id" => $team_id ] );
+        $post = db_get("*", TB_POSTS, ["ids" => $post_id, "team_id" => $team_id]);
         $data = [
             "title" => $this->config['name'],
             "desc" => $this->config['desc'],
             "config" => $this->config,
             "post" => json_encode($post),
-            "content" => view('Core\Post\Views\make',[
+            "content" => view('Core\Post\Views\make', [
                 'workflows' => $workflowsWithStatus,  // 明确指定变量名
                 "post" => $post
             ])
@@ -77,12 +77,13 @@ class Post extends \CodeIgniter\Controller
         return view('Core\Post\Views\index', $data);
     }
 
-    public function index( $page = false ) {
+    public function index($page = false)
+    {
         $post_id = get("post_id");
         $team_id = get_team("id");
         $caption = get("caption");
 
-        if($caption != ""){
+        if ($caption != "") {
             $caption = base64_decode($caption);
             $caption = preg_replace("/U\+([0-9a-f]{4,5})/mi", '&#x${1}', $caption);
         }
@@ -96,7 +97,7 @@ class Post extends \CodeIgniter\Controller
             $google_drive->refresh_token();
         }
 
-        $post = db_get( "*", TB_POSTS, [ "ids" => $post_id, "team_id" => $team_id ] );
+        $post = db_get("*", TB_POSTS, ["ids" => $post_id, "team_id" => $team_id]);
 
         $request = \Config\Services::request();
         $data = [
@@ -205,7 +206,8 @@ class Post extends \CodeIgniter\Controller
         }
     }
 
-    public function update_workflow_schedule() {
+    public function update_workflow_schedule()
+    {
         $request = service('request');
         $data = $request->getJSON(true);
 
@@ -213,7 +215,7 @@ class Post extends \CodeIgniter\Controller
         $scheduleType = $data['schedule_type'];
 
         // 根据不同类型处理
-        switch($scheduleType) {
+        switch ($scheduleType) {
             case 'daily':
                 $time = $data['time'];
                 // 保存每日调度逻辑...
@@ -399,7 +401,7 @@ class Post extends \CodeIgniter\Controller
                 break;
         }
 
-        $list_accounts = $this->account_manager_model->get_accounts_by($accounts,"ids",1,0,true);
+        $list_accounts = $this->account_manager_model->get_accounts_by($accounts, "ids", 1, 0, true);
         if (empty($list_accounts)) {
             validate('empty', __('Accounts selected is inactive. Let re-login and try again'), $list_accounts);
         }
@@ -441,8 +443,11 @@ class Post extends \CodeIgniter\Controller
      * 删除临时文件
      * @param array $files 要删除的文件路径数组
      */
-    private function deleteTempFiles(array $files) {
-        if (empty($files)) {return true;}
+    private function deleteTempFiles(array $files)
+    {
+        if (empty($files)) {
+            return true;
+        }
         foreach ($files as $file) {
             if (file_exists($file)) {
                 try {
@@ -454,7 +459,8 @@ class Post extends \CodeIgniter\Controller
         }
     }
 
-    function generateRandomFilename($extension = '') {
+    function generateRandomFilename($extension = '')
+    {
         $prefix = bin2hex(random_bytes(4)); // 8字符随机前缀
         $filename = uniqid($prefix . '_', true); // 生成唯一ID
         $filename = str_replace('.', '', $filename); // 移除uniqid中的点
@@ -469,7 +475,8 @@ class Post extends \CodeIgniter\Controller
     /**
      * 从Google Drive URL中提取文件ID
      */
-    private function extractGoogleDriveFileId($url) {
+    private function extractGoogleDriveFileId($url)
+    {
         $patterns = [
             '/\/file\/d\/([^\/]+)/',
             '/id=([^&]+)/',
@@ -490,6 +497,7 @@ class Post extends \CodeIgniter\Controller
         $team_id = get_team("id");
         $user_id = get_user("id"); // 获取当前用户ID
         $social_network = post("social_network");
+
         $configs = get_blocks("block_frame_posts", false, true);
         $items = [];
         if (!empty($configs)) {
@@ -547,52 +555,8 @@ class Post extends \CodeIgniter\Controller
         //
         $recent_posts = $this->model->get_recent_posts();
 
-        $daterange = addslashes(post("daterange"));
-        if ($daterange != "") {
-            $daterange = explode(",", $daterange);
-        } else {
-            $daterange = [];
-        }
-
-
-        $dashboardData = ['views' => '1,254,879', 'earnings' => '8,742.35', 'activeSong' => '10', 'countriesReached' => '42'];
-
-        $monthlyData = [
-            ['month' => 'January', 'views' => '88,543', 'earnings' => '211114.56'],
-            ['month' => 'January', 'views' => '21,543', 'earnings' => '214.56'],
-            ['month' => 'January', 'views' => '21,543', 'earnings' => '2111114.56'],
-            ['month' => 'January', 'views' => '88,543', 'earnings' => '211114.56'],
-            ['month' => 'January', 'views' => '21,543', 'earnings' => '214.56'],
-            ['month' => 'January', 'views' => '21,543', 'earnings' => '2111114.56'],
-            ['month' => 'January', 'views' => '88,543', 'earnings' => '211114.56'],
-            ['month' => 'January', 'views' => '21,543', 'earnings' => '214.56'],
-            ['month' => 'January', 'views' => '21,543', 'earnings' => '2111114.56'],
-            ['month' => 'January', 'views' => '88,543', 'earnings' => '211114.56'],
-            ['month' => 'January', 'views' => '21,543', 'earnings' => '214.56'],
-            ['month' => 'January', 'views' => '21,543', 'earnings' => '2111114.56'],
-        ];
-
-        $songsDataList = [
-            ['title' => 'Song 1', 'platform' => 'All Platform', 'icon' => '', 'date' => 'May 15 - Jun 15, 2025', 'views' => '384,729', 'topCountry' => 'United States', 'earns' => '2458.92', 'imgSrc' => "https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
-            ['title' => 'Song 1', 'platform' => 'All Platform', 'icon' => '', 'date' => 'May 15 - Jun 15, 2025', 'views' => '384,729', 'topCountry' => 'United Kingdom', 'earns' => '2458.92', 'imgSrc' => "https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
-            ['title' => 'Song 1', 'platform' => 'All Platform', 'icon' => '', 'date' => 'May 15 - Jun 15, 2025', 'views' => '384,729', 'topCountry' => 'Germany', 'earns' => '2458.92', 'imgSrc' => "https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
-            ['title' => 'Song 1', 'platform' => 'All Platform', 'icon' => '', 'date' => 'May 15 - Jun 15, 2025', 'views' => '384,729', 'topCountry' => 'United States', 'earns' => '2458.92', 'imgSrc' => "https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
-            ['title' => 'Song 1', 'platform' => 'All Platform', 'icon' => '', 'date' => 'May 15 - Jun 15, 2025', 'views' => '384,729', 'topCountry' => 'United Kingdom', 'earns' => '2458.92', 'imgSrc' => "https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
-            ['title' => 'Song 2', 'platform' => 'All Platform', 'icon' => '', 'date' => 'May 15 - Jun 15, 2025', 'views' => '384,729', 'topCountry' => 'Germany', 'earns' => '2458.92', 'imgSrc' => "https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
-            ['title' => 'Song 2', 'platform' => 'All Platform', 'icon' => '', 'date' => 'May 15 - Jun 15, 2025', 'views' => '384,729', 'topCountry' => 'United States', 'earns' => '2458.92', 'imgSrc' => "https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
-            ['title' => 'Song 2', 'platform' => 'All Platform', 'icon' => '', 'date' => 'May 15 - Jun 15, 2025', 'views' => '384,729', 'topCountry' => 'United Kingdom', 'earns' => '2458.92', 'imgSrc' => "https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
-            ['title' => 'Song 2', 'platform' => 'All Platform', 'icon' => '', 'date' => 'May 15 - Jun 15, 2025', 'views' => '384,729', 'topCountry' => 'Germany', 'earns' => '2458.92', 'imgSrc' => "https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
-            ['title' => 'Song 2', 'platform' => 'All Platform', 'icon' => '', 'date' => 'May 15 - Jun 15, 2025', 'views' => '384,729', 'topCountry' => 'Germany', 'earns' => '2458.92', 'imgSrc' => "https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish"],
-        ];
-        $countryList = [
-            ['countryName' => 'United States', 'value' => '458325', 'color' => '#ff7a00'],
-            ['countryName' => 'United Kingdom', 'value' => '287192', 'color' => '#00b4ff'],
-            ['countryName' => 'Germany', 'value' => '198745', 'color' => '#64ffda'],
-            ['countryName' => 'Canada', 'value' => '156387', 'color' => '#ff00ff'],
-            ['countryName' => 'Other', 'value' => '156387', 'color' => '#fff012'],
-        ];
-
-        // 获取用户授权的音乐列表
+        //以下为数据获取
+        // 1.获取用户授权的音乐列表
         $db = \Config\Database::connect();
         $builder = $db->table('sp_user_music_licenses as uml');
         $builder->select('ml.*, uml.expiry_date as license_expiry_date');
@@ -602,6 +566,7 @@ class Post extends \CodeIgniter\Controller
         $licensed_music = $builder->get()->getResultArray();
 
         $songsList = [];
+        $songsIsrcList = [];
         foreach ($licensed_music as $music) {
             $songsItem = [
                 'id' => $music['id'],
@@ -615,9 +580,140 @@ class Post extends \CodeIgniter\Controller
                 'license_expiry' => date('Y-m-d', strtotime($music['license_expiry_date']))
             ];
             $songsList[] = $songsItem;
+            $songsIsrcList[$music['isrc']] = $songsItem;
+        }
+        //用户有的isrc歌曲权限
+        $licensedIsrcs = array_column($songsList, 'isrc');
+
+        // 获取仪表盘数据
+        $dashboardData = [
+            'views' => 0,
+            'earnings' => 0,
+            'countriesReached' => 0
+        ];
+        if (!empty($licensedIsrcs)) {
+            $dashboardQuery = $db->table('sp_music_royalties')
+                ->select([
+                    'SUM(quantity) as total_views',
+                    'SUM(earnings_usd) as total_earnings',
+                    'COUNT(DISTINCT country) as countries_reached'
+                ])
+                ->whereIn('isrc', $licensedIsrcs)
+                ->get();
+
+            $dashboardResult = $dashboardQuery->getRowArray();
+            // 格式化数据
+            $dashboardData = [
+                'views' => number_format($dashboardResult['total_views'] ?? 0),
+                'earnings' => number_format($dashboardResult['total_earnings'] ?? 0, 4),
+                'countriesReached' => $dashboardResult['countries_reached'] ?? 0
+            ];
         }
 
-        $assignData = ['songsList' => $songsList, 'countryList' => $countryList, 'songsDataList' => $songsDataList, 'dashboardData' => $dashboardData, 'monthlyData' => $monthlyData,
+        //获取用户授权的歌的Monthly Data
+        if (!empty($licensedIsrcs)) {
+            $builder = $db->table('sp_music_royalties');
+            $monthlyData = $builder->select([
+                'sale_month as month',
+                'SUM(quantity) as views',
+                'SUM(earnings_usd) as earnings'
+            ])
+                ->whereIn('isrc', $licensedIsrcs)
+                ->groupBy('sale_month')
+                ->orderBy('sale_month', 'DESC') // 改为降序排列，最新的月份在前
+                ->limit(12) // 限制12条记录
+                ->get()
+                ->getResultArray();
+            // 按月份升序重新排序（为了计算涨幅）
+            usort($monthlyData, function ($a, $b) {
+                return strcmp($a['month'], $b['month']);
+            });
+            // 计算涨跌幅
+            $processedData = [];
+            for ($i = 0; $i < count($monthlyData); $i++) {
+                $currentMonth = $monthlyData[$i];
+                $growth = null;
+
+                // 如果不是第一个月，计算涨幅
+                if ($i > 0) {
+                    $prevMonth = $monthlyData[$i - 1];
+
+                    // 计算播放量涨幅
+                    if ($prevMonth['views'] != 0) {
+                        $growth['views_growth'] =
+                            (($currentMonth['views'] - $prevMonth['views']) / $prevMonth['views']) * 100;
+                    }
+
+                    // 计算收入涨幅
+                    if ($prevMonth['earnings'] != 0) {
+                        $growth['earnings_growth'] =
+                            (($currentMonth['earnings'] - $prevMonth['earnings']) / $prevMonth['earnings']) * 100;
+                    }
+                }
+
+                $processedData[] = [
+                    'month' => $currentMonth['month'],
+                    'views' => $currentMonth['views'],
+                    'earnings' => round($currentMonth['earnings'], 4),
+                    'growth_rate' => $growth
+                ];
+            }
+
+            // 再次按月份降序排列（最新的在前）
+            $monthlyData = array_reverse($processedData);
+        } else {
+            $monthlyData = [];
+        }
+
+        $songsDataList = [];
+        if(!empty($licensedIsrcs)){
+            $sale_month = $this->request->getGet('sale_month'); // 或根据你的实际情况获取
+            $builder = $db->table('sp_music_royalties a');
+            // 选择需要的字段
+            $builder->select([
+                'a.isrc',
+                'a.title',
+                'a.sale_month',
+                'SUM(a.quantity) AS total_plays',
+                'SUM(a.earnings_usd) AS earnings',
+                '(SELECT b.country 
+          FROM sp_music_royalties b 
+          WHERE b.isrc = a.isrc 
+            AND b.sale_month = a.sale_month
+          GROUP BY b.country
+          ORDER BY SUM(b.earnings_usd) DESC
+          LIMIT 1) AS top_country'
+            ]);
+
+            // 使用whereIn确保查询多个ISRC
+            $builder->whereIn('a.isrc', $licensedIsrcs);
+
+            // 按ISRC和月份分组
+            $builder->groupBy('a.isrc', 'a.sale_month', 'a.title');
+
+            // 按月份降序排列
+            $builder->orderBy('a.sale_month', 'DESC');
+
+            // 获取所有结果
+            $results = $builder->get()->getResultArray();
+            // 格式化输出
+            $formattedData = [];
+            foreach ($results as $row) {
+                $formattedData[] = [
+                    'title' => $songsIsrcList[$row['isrc']]['title'],
+                    'platform' => 'All Platform',
+                    'icon' => '',
+                    'date' => $row['sale_month'],
+                    'views' => number_format($row['total_plays']),
+                    'topCountry' => $row['top_country'],
+                    'earns' => number_format($row['earnings'], 4),
+                    'imgSrc' => $songsIsrcList[$row['isrc']]['imgSrc'],
+                ];
+            }
+            $songsDataList = $formattedData;
+        }
+
+        $assignData = ['songsList' => $songsList, 'songsDataList' => $songsDataList, 'dashboardData' => $dashboardData, 'monthlyData' => $monthlyData,
             "total_media_succeed" => $total_media_succeed,
             "total_link_succeed" => $total_link_succeed,
             "total_text_succeed" => $total_text_succeed,

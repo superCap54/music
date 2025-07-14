@@ -387,7 +387,7 @@
             <div class="flex justify-between items-start">
                 <div>
                     <h3 class="text-gray-400 text-sm font-medium"><?php _e("active_songs")?></h3>
-                    <p class="metric-value text-3xl font-semibold mt-1"><?php _ec($dashboardData['activeSong'])?></p>
+                    <p class="metric-value text-3xl font-semibold mt-1"><?php _ec(count($songsList)); ?></p>
                 </div>
                 <div class="rounded-full bg-[rgba(255,0,255,0.1)] flex items-center justify-center text-[#ff00ff]" style="width: 2.5rem; height: 2.5rem;">
                     <i class="ri-music-2-line text-xl"></i>
@@ -440,8 +440,16 @@
                                     </div>
                                 </div>
                                 <div class="mt-3 flex items-center text-green-400 text-xs">
-                                    <i class="ri-arrow-up-line mr-1"></i>
-                                    +5.2%
+                                    <?php if ($month['growth_rate'] !== null): ?>
+                                        <span class="<?= $month['growth_rate']['earnings_growth'] >= 0 ? 'text-success' : 'text-danger' ?>">
+                                        <?php  if($month['growth_rate']['earnings_growth'] >= 0): ?>
+                                            <i class="ri-arrow-up-line mr-1"></i>
+                                        <?php else: ?>
+                                        <i class="ri-arrow-down-line mr-1"></i>
+                                        <?php endif; ?>
+                                        <?= $month['growth_rate']['earnings_growth'] ?>%
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php } ?>
@@ -457,6 +465,9 @@
             <h2 class="text-2xl font-medium"><?php _e("Song Performance"); ?></h2>
         </div>
         <div class="mb-8 rounded-lg border border-[rgba(255,255,255,0.05)]" style="padding: 1rem; padding-bottom: 0;">
+            <?php
+                if (false): //先写死不显示
+            ?>
             <div class="flex flex-wrap items-end gap-4 mb-8">
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm text-gray-400 mb-2"><?php _e("Platform"); ?></label>
@@ -508,6 +519,7 @@
                     <?php _e("Search"); ?>
                 </button>
             </div>
+            <?php endif; ?>
             <!-- Song Data Table -->
             <div class="mb-8">
                 <div class="overflow-x-auto">
@@ -545,10 +557,10 @@
                                         <span class=><?php _ec($songDataItem['platform'])?></span>
                                     </div>
                                 </td>
-                                <td class=" text-gray-800"><?php _ec($songDataItem['date'])?></td style="padding: 1rem;">
-                                <td class=" font-medium"><?php _ec($songDataItem['views'])?></td style="padding: 1rem;">
-                                <td class=" font-medium"><?php _ec($songDataItem['topCountry'])?></td style="padding: 1rem;">
-                                <td class=" font-medium text-green-400">$<?php _ec($songDataItem['earns'])?></td style="padding: 1rem;">
+                                <td class=" text-gray-800" style="padding: 1rem;"><?php _ec($songDataItem['date'])?></td style="padding: 1rem;">
+                                <td class=" font-medium" style="padding: 1rem;"><?php _ec($songDataItem['views'])?></td style="padding: 1rem;">
+                                <td class=" font-medium" style="padding: 1rem;"><?php _ec($songDataItem['topCountry'])?></td style="padding: 1rem;">
+                                <td class=" font-medium text-green-400" style="padding: 1rem;">$<?php _ec($songDataItem['earns'])?></td style="padding: 1rem;">
                             </tr>
                         <?php } ?>
                         </tbody>
