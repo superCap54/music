@@ -1,7 +1,7 @@
 <?php if ( !empty($result) ): ?>
-	
+
 	<?php foreach ($result as $key => $value): ?>
-		
+
 		<tr class="item">
 		    <th scope="row" class="py-3 ps-4 border-bottom">
 		        <div class="form-check form-check-sm form-check-custom form-check-solid me-3">
@@ -41,7 +41,7 @@
 		    			case 'twitter':
 		    				$login_type = '<i class="fs-18 fab fa-twitter" style="color: #08a0e9" title="Twitter"></i>';
 		    				break;
-		    			
+
 		    			default:
 		    				$login_type = '<i class="fs-18 fas fa-location-circle text-dark" title="Direct"></i>';
 		    				break;
@@ -78,7 +78,7 @@
 				    	<i class="fad fa-th-list pe-0"></i>
 				  	</button>
 				  	<ul class="dropdown-menu dropdown-menu-end">
-				  		<?php 
+				  		<?php
 				  		if(!empty($actions)){
 		                    foreach ($actions as $action) {
 		                    	$data = $action['data'];
@@ -96,7 +96,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="<?php _e( get_module_url('index/update/'.$value->ids) )?>" class="actionItem dropdown-item" data-remove-other-active="true" data-active="bg-light-primary" data-result="html" data-content="main-wrapper" data-history="<?php _e( get_module_url('index/update/'.$value->ids) )?>" data-call-after="Core.calendar();">
+                            <a href="<?php _e( get_module_url('index/music/'.$value->ids) )?>" class="actionItem dropdown-item" data-remove-other-active="true" data-active="bg-light-primary" data-result="html" data-content="main-wrapper" data-history="<?php _e( get_module_url('index/music/'.$value->ids) )?>"  data-call-after="Core.calendar();">
                                 <i class="fad fa-music pe-2"></i> <?php _e('Licensed Music')?>
                             </a>
                         </li>

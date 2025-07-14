@@ -14,7 +14,6 @@ class Users extends \CodeIgniter\Controller
             "desc" => $this->config['desc'],
             'config' => $this->config
         ];
-
         switch ( $page ) {
             case 'update':
                 $item = false;
@@ -27,6 +26,96 @@ class Users extends \CodeIgniter\Controller
                 $group_roles = db_fetch("*", TB_ROLES, "", "id", "ASC");
 
                 $data['content'] = view('Core\Users\Views\update', ["result" => $item, 'plans' => $plans, "group_roles" => $group_roles, 'config' => $this->config]);
+                break;
+
+            case 'music':
+                $ids = uri('segment', 4);
+                $page = uri('segment', 5);
+                // 确保页码是整数
+                $page = (int)$page;
+                if ($page < 1) {
+                    $page = 1;
+                }
+                $user = db_get("*", TB_USERS, [ "ids" => $ids ]);
+
+                // 检查用户是否存在
+                if(empty($user)) {
+                    redirect_to( get_module_url() );
+                }
+
+                $this->musicModel = new \Core\Music\Models\MusicModel();
+
+                // 获取音乐总数
+                $musicTotal = $this->musicModel->getTotalMusic();
+
+                // 分页设置
+                $per_page = 30;
+                $total_pages = ceil($musicTotal / $per_page);
+                $page = max(1, min($page, $total_pages));
+                $offset = ($page - 1) * $per_page;
+
+                // 获取音乐列表 - 确保返回数组
+                $music_list = $this->musicModel->getMusicList($per_page, $offset);
+                // 确保 music_list 是数组
+                if (!is_array($music_list)) {
+                    $music_list = [];
+                }
+
+                // 获取当前页所有音乐的ID
+                $music_ids = array_column($music_list, 'id');
+
+                // 批量查询用户对这些音乐的授权状态
+                $licenses = [];
+                if (!empty($music_ids)) {
+                    // 使用 CodeIgniter 4 的查询构建器
+                    $db = \Config\Database::connect();
+                    $builder = $db->table(TB_MUSIC_LICENSES);
+                    $license_results = $builder->where('user_id', $user->id)
+                        ->whereIn('music_id', $music_ids)
+                        ->where('expiry_date >', time())
+                        ->get()
+                        ->getResult();
+
+                    // 将授权结果转换为以music_id为键的数组
+                    foreach ($license_results as $license) {
+                        $licenses[$license->music_id] = $license;
+                    }
+                }
+
+                // 查询用户已授权的音乐总数(不限于当前页)
+                $db = \Config\Database::connect();
+                $licensed_count = $db->table(TB_MUSIC_LICENSES)
+                    ->where('user_id', $user->id)
+                    ->where('expiry_date >', time())
+                    ->countAllResults();
+
+                // 标记每首音乐的授权状态
+                foreach ($music_list as &$music) {
+                    $music['licensed'] = isset($licenses[$music['id']]);
+                    $music['license_data'] = $licenses[$music['id']] ?? null;
+                    // 确保expiry_date是时间戳格式
+                    if ($music['licensed'] && isset($music['license_data']->expiry_date)) {
+                        // 如果是从数据库获取的日期字符串，转换为时间戳
+                        if (is_string($music['license_data']->expiry_date)) {
+                            $music['license_data']->expiry_date = strtotime($music['license_data']->expiry_date);
+                        }
+                    }
+                }
+
+                $datatable = [
+                    "total_items" => $musicTotal,
+                    "per_page" => $per_page,
+                    "current_page" => $page,
+                    "total_pages" => $total_pages,
+                ];
+
+                $data['content'] = view('Core\Users\Views\music',[
+                    'musics' => $music_list,
+                    'user' => $user,
+                    'total' => $musicTotal,
+                    'datatable' => $datatable,
+                    'licensed_count' => $licensed_count
+                ]);
                 break;
 
             case 'role':
@@ -106,6 +195,41 @@ class Users extends \CodeIgniter\Controller
         return view('Core\Users\Views\index', $data);
     }
 
+    public function revoke_license()
+    {
+        $music_id = post('music_id');
+        $user_id = post('user_id');
+
+        // 验证参数
+        if(empty($music_id) || empty($user_id)) {
+            ms([
+                "status" => "error",
+                "message" => __("Invalid parameters")
+            ]);
+        }
+
+        // 删除授权记录
+        $db = \Config\Database::connect();
+        $deleted = $db->table(TB_MUSIC_LICENSES)
+            ->where('music_id', $music_id)
+            ->where('user_id', $user_id)
+            ->delete();
+
+        if($deleted) {
+            ms([
+                "status" => "success",
+                "message" => __("License revoked successfully"),
+                "callback" => "Core.reload()"
+            ]);
+        } else {
+            ms([
+                "status" => "error",
+                "message" => __("Failed to revoke license")
+            ]);
+        }
+    }
+
+    
     public function ajax_list(){
         $total_items = $this->model->get_list(false);
         $result = $this->model->get_list(true);
@@ -278,6 +402,116 @@ class Users extends \CodeIgniter\Controller
             "status" => "success",
             "message" => __('Success')
         ]);
+    }
+
+    public function auth_music()
+    {
+        // 获取用户ID和音乐ID数组
+        $user_ids = uri('segment', 3);
+        $music_ids = post('music_ids');
+        $expiry_date = post('expiry_date');
+
+        // 验证用户是否存在
+        $user = db_get("*", TB_USERS, ["ids" => $user_ids]);
+        if(empty($user)) {
+            ms([
+                "status" => "error",
+                "message" => __("User not found")
+            ]);
+        }
+
+        // 验证至少选择了一首音乐
+        if(empty($music_ids)) {
+            ms([
+                "status" => "error",
+                "message" => __("Please select at least one music")
+            ]);
+        }
+
+        // 验证过期日期
+        if(empty($expiry_date)) {
+            ms([
+                "status" => "error",
+                "message" => __("Please select an expiration date")
+            ]);
+        }
+
+        // 转换日期为时间戳
+        $expiry_timestamp = strtotime($expiry_date);
+        $current_timestamp = time();
+        if($expiry_timestamp < $current_timestamp) {
+            ms([
+                "status" => "error",
+                "message" => __("Expiration date cannot be in the past")
+            ]);
+        }
+
+        // 检查音乐是否存在并处理授权
+        $success_count = 0;
+        $failed_count = 0;
+
+        foreach($music_ids as $music_id) {
+            // 检查音乐是否存在
+            $music = db_get("*", TB_MUSIC, ["id" => $music_id]);
+            if(empty($music)) {
+                $failed_count++;
+                continue;
+            }
+
+            // 检查是否已经授权过
+            $existing_license = db_get("*", TB_MUSIC_LICENSES, [
+                "user_id" => $user->ids,
+                "music_id" => $music_id
+            ]);
+
+            if($existing_license) {
+                // 更新现有授权
+                $result = db_update(TB_MUSIC_LICENSES, [
+                    "expiry_date" => $expiry_timestamp,
+                    "updated_at" => time()
+                ], [
+                    "id" => $existing_license->id
+                ]);
+            } else {
+                // 创建新授权
+                $result = db_insert(TB_MUSIC_LICENSES, [
+                    "user_id" => $user->id,
+                    "music_id" => $music_id,
+                    "start_date" => date('Y-m-d H:i:s', time()),  // 转换为MySQL格式
+                    "expiry_date" => date('Y-m-d H:i:s', $expiry_timestamp),
+                    'allow_download' => 1,
+                    'allow_streaming' => 1,
+                    'allow_commercial_use' => 1,
+                    "created_at" => date('Y-m-d H:i:s', time()),
+                    "updated_at" => date('Y-m-d H:i:s', time())
+                ]);
+            }
+
+            if($result) {
+                $success_count++;
+            } else {
+                $failed_count++;
+            }
+        }
+
+        // 返回结果
+        if($success_count > 0) {
+            $message = sprintf(__("Successfully licensed %d music tracks"), $success_count);
+            if($failed_count > 0) {
+                $message .= sprintf(__(", failed to license %d tracks"), $failed_count);
+            }
+
+            ms([
+                "status" => "success",
+                "message" => $message,
+                "callback" => "Core.click('users-list');"
+            ]);
+        } else {
+            ms([
+                "status" => "error",
+                "message" => __("Failed to license any music tracks")
+            ]);
+        }
     }
 
     public function delete( $ids = '' ){
