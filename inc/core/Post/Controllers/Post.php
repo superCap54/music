@@ -488,6 +488,7 @@ class Post extends \CodeIgniter\Controller
     public function report()
     {
         $team_id = get_team("id");
+        $user_id = get_user("id"); // 获取当前用户ID
         $social_network = post("social_network");
         $configs = get_blocks("block_frame_posts", false, true);
         $items = [];
@@ -590,18 +591,32 @@ class Post extends \CodeIgniter\Controller
             ['countryName' => 'Canada', 'value' => '156387', 'color' => '#ff00ff'],
             ['countryName' => 'Other', 'value' => '156387', 'color' => '#fff012'],
         ];
-        $songsList = [
-            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3', 'title' => 'Song 1', 'isrc' => 'QZES72032915', 'fileExtension' => pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
-            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/2.wav', 'title' => 'Song 2', 'isrc' => 'QZES99032915', 'fileExtension' => pathinfo("http://localhost/music/2.wav", PATHINFO_EXTENSION)],
-            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3', 'title' => 'Song 1', 'isrc' => 'QZES72032915', 'fileExtension' => pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
-            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3', 'title' => 'Song 1', 'isrc' => 'QZES72032915', 'fileExtension' => pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
-            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3', 'title' => 'Song 1', 'isrc' => 'QZES72032915', 'fileExtension' => pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
-            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3', 'title' => 'Song 1', 'isrc' => 'QZES72032915', 'fileExtension' => pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
-            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3', 'title' => 'Song 1', 'isrc' => 'QZES72032915', 'fileExtension' => pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
-            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3', 'title' => 'Song 1', 'isrc' => 'QZES72032915', 'fileExtension' => pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
-            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3', 'title' => 'Song 1', 'isrc' => 'QZES72032915', 'fileExtension' => pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)],
-            ['imgSrc' => 'https://readdy.ai/api/search-image?query=modern%20electronic%20music%20album%20cover%20with%20neon%20lights%20and%20geometric%20shapes%2C%20dark%20background%2C%20minimalist%20design%2C%20high%20quality%2C%20professional&width=400&height=400&seq=1&orientation=squarish', 'audioSrc' => 'http://localhost/music/1.mp3', 'title' => 'Song 1', 'isrc' => 'QZES72032915', 'fileExtension' => pathinfo("http://localhost/music/1.mp3", PATHINFO_EXTENSION)]
-        ];
+
+        // 获取用户授权的音乐列表
+        $db = \Config\Database::connect();
+        $builder = $db->table('sp_user_music_licenses as uml');
+        $builder->select('ml.*, uml.expiry_date as license_expiry_date');
+        $builder->join('sp_music_library as ml', 'ml.id = uml.music_id');
+        $builder->where('uml.user_id', $user_id);
+        $builder->where('uml.expiry_date >', time()); // 只获取未过期的授权
+        $licensed_music = $builder->get()->getResultArray();
+
+        $songsList = [];
+        foreach ($licensed_music as $music) {
+            $songsItem = [
+                'id' => $music['id'],
+                'imgSrc' => $music['cover_url'],
+                'audioSrc' => $music['file_src'],
+                'title' => $music['title'],
+                'isrc' => $music['isrc'],
+                'fileExtension' => pathinfo($music['file_src'] ?? '', PATHINFO_EXTENSION),
+                'duration' => $music['duration'],
+                'artist' => $music['artist'],
+                'license_expiry' => date('Y-m-d', strtotime($music['license_expiry_date']))
+            ];
+            $songsList[] = $songsItem;
+        }
+
         $assignData = ['songsList' => $songsList, 'countryList' => $countryList, 'songsDataList' => $songsDataList, 'dashboardData' => $dashboardData, 'monthlyData' => $monthlyData,
             "total_media_succeed" => $total_media_succeed,
             "total_link_succeed" => $total_link_succeed,
