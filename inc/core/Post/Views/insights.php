@@ -569,6 +569,7 @@
             <h2 class="text-2xl font-medium"><?php echo _e('Songs Library'); ?></h2>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+            <?php if (!empty($songsList)): ?>
             <?php foreach ($songsList as $songItem){ ?>
                 <div style="box-shadow: 5px 5px 5px rgba(0,0,0,0.05)" class="group relative bg-[rgba(245,245,245,0.8)] backdrop-blur-sm border border-[rgba(255,255,255,0.05)] rounded-lg overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:border-[rgba(0,180,255,0.2)] hover:shadow-[0_0_15px_rgba(0,180,255,0.2)]">
                     <div class="relative aspect-square">
@@ -609,6 +610,15 @@
                     </div>
                 </div>
             <?php } ?>
+            <?php else: ?>
+                <div class="col-span-full py-12 text-center">
+                    <div class="inline-block p-10 bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200">
+                        <i class="ri-alert-line text-4xl text-yellow-500 mb-3"></i>
+                        <h3 class="text-lg font-medium text-gray-800 mb-2"><?php _e("No Licensed Music")?></h3>
+                        <p class="text-gray-600"><?php _e("Please wait for administrator authorization")?></p>
+                    </div>
+                </div>
+            <?php endif ?>
         </div>
     </div>
 </main>
