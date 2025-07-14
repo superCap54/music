@@ -667,7 +667,7 @@ class Post extends \CodeIgniter\Controller
 
         $songsDataList = [];
         if(!empty($licensedIsrcs)){
-            $sale_month = $this->request->getGet('sale_month'); // 或根据你的实际情况获取
+            $sale_month = date('Y-m', strtotime('-2 months'));
             $builder = $db->table('sp_music_royalties a');
             // 选择需要的字段
             $builder->select([
@@ -687,6 +687,7 @@ class Post extends \CodeIgniter\Controller
 
             // 使用whereIn确保查询多个ISRC
             $builder->whereIn('a.isrc', $licensedIsrcs);
+            $builder->where('a.sale_month', $sale_month);  // 主查询限制月份
 
             // 按ISRC和月份分组
             $builder->groupBy('a.isrc', 'a.sale_month', 'a.title');
