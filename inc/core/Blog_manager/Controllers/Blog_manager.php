@@ -12,7 +12,7 @@ class Blog_manager extends \CodeIgniter\Controller
         $this->db = \Config\Database::connect();
     }
 
-    public function index( $page = false ) {
+    public function index1( $page = false ) {
         $data = [
             "title" => $this->config['name'],
             "desc" => $this->config['desc'],
@@ -222,7 +222,7 @@ class Blog_manager extends \CodeIgniter\Controller
         }
     }
     
-    public function index1( $page = false ) {
+    public function index( $page = false ) {
         $data = [
             "title" => $this->config['name'],
             "desc" => $this->config['desc'],

@@ -2,6 +2,9 @@
     <div class="card border b-r-10">
         <div class="card-header">
             <h3 class="card-title">Import DistroKid TSV File</h3>
+            <a href="/music" class="">
+                <i class="fas fa-arrow-left"></i><?php _e("Back")?>
+            </a>
         </div>
         <div class="card-body">
             <!-- TSV文件上传表单 -->

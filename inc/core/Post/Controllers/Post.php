@@ -688,6 +688,7 @@ class Post extends \CodeIgniter\Controller
             // 使用whereIn确保查询多个ISRC
             $builder->whereIn('a.isrc', $licensedIsrcs);
             $builder->where('a.sale_month', $sale_month);  // 主查询限制月份
+            $builder->whereIn('a.store',['YouTube (Ads)','YouTube (ContentID)','YouTube (Red)']);
 
             // 按ISRC和月份分组
             $builder->groupBy('a.isrc', 'a.sale_month', 'a.title');

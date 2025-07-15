@@ -7,6 +7,9 @@
         <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#importModal">
             <i class="fas fa-file-import me-2"></i><?php _e("Import Music")?>
         </button>
+        <a href="/music/import_tsv_index" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-file-import me-2"></i><?php _e("Import DistroKid Data")?>
+        </a>
 <!--        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">-->
 <!--            <i class="fas fa-upload me-2"></i>--><?php //_e("Upload Music")?>
 <!--        </button>-->

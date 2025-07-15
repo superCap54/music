@@ -447,7 +447,7 @@
                                         <?php else: ?>
                                         <i class="ri-arrow-down-line mr-1"></i>
                                         <?php endif; ?>
-                                        <?= $month['growth_rate']['earnings_growth'] ?>%
+                                        <?= round($month['growth_rate']['earnings_growth'],2) ?>%
                                         </span>
                                     <?php endif; ?>
                                 </div>

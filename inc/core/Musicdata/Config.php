@@ -1,18 +1,19 @@
 <?php
 return [
-    'id' => 'blog_manager',
+    'platform' => 1,
+    'id' => 'musicdata',
     'folder' => 'core',
-    'name' => 'Blog',
+    'name' => 'Music Data',
     'author' => 'Stackcode',
     'author_uri' => 'https://stackposts.com',
     'desc' => 'Customize system interface',
-    'icon' => 'fad fa-blog',
+    'icon' => 'fad fa-music',
     'color' => '#ff8100',
-    'role' => 1,
     'menu' => [
-        'tab' => 5,
+        'tab' => 3,
         'type' => 'top',
-        'position' => 4000,
-        'name' => 'Blog',
-    ]
+        'position' => 10000,
+        'name' => 'Music Data',
+    ],
+    'hidden'=>false,
 ];
