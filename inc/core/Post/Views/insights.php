@@ -595,7 +595,7 @@
                     </div>
                     <div class="" style="padding: 1rem;">
                         <h4 class="font-medium mb-1" style="font-size: medium;"><?php _ec($songItem['title'])?></h4>
-                        <p class="text-gray-400 text-sm mb-3"><?php _ec($songItem['isrc'])?></p>
+                        <p class="text-gray-400 text-sm mb-3"><?php _ec($songItem['upc'])?></p>
                         <div class="flex items-center gap-2 mb-3">
                             <div class="flex items-center justify-center">
                                 <i class="ri-tiktok-fill text-sm" style="font-size: 20px; color: #000000"></i>
@@ -612,7 +612,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-400 text-xs"></span>
-                            <a href="<?php _ec($songItem['audioSrc'])?>" download="<?php _ec($songItem['isrc']).$songItem['title'].".".$songItem['fileExtension']; ?>">
+                            <a href="<?php _ec($songItem['audioSrc'])?>" download="<?php _ec($songItem['upc']).$songItem['title'].".".$songItem['fileExtension']; ?>">
                                 <button class="bg-primary hover:bg-opacity-90 text-sm px-4 py-1.5 rounded-button flex items-center whitespace-nowrap text-white">
                                     <i class="ri-rocket-line mr-1"></i>
                                     <?php echo _e("Download"); ?>

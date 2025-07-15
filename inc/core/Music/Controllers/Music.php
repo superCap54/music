@@ -260,6 +260,7 @@ class Music extends \CodeIgniter\Controller
             'title',          // 歌曲标题 (必填)
             'cover_url',      // 歌曲封面URL (可选)
             'isrc',           // 国际标准录音代码 (可选)
+            'upc',            //音乐条形码
             'file_src',       // 歌曲文件路径 (必填，可以是相对路径)
             'duration',       // 歌曲时长(秒) (可选)
             'genre',          // 音乐流派 (可选)
@@ -275,6 +276,7 @@ class Music extends \CodeIgniter\Controller
             'Test Song',      // title
             'https://www.baidu.com/covers/test.jpg', // cover_url
             'USABC1234567',   // isrc
+            'UPC112233445',   //upc
             'https://www.baidu.com/music/test.mp3', // file_src
             '180',            // duration
             'Pop',           // genre
@@ -369,6 +371,7 @@ class Music extends \CodeIgniter\Controller
                     'title' => $rowData['title'] ?? '',
                     'cover_url' => $rowData['cover_url'] ?? null,
                     'isrc' => $rowData['isrc'] ?? null,
+                    'upc' => $rowData['upc'] ?? null,
                     'file_src' => $rowData['file_src'] ?? '',
                     'duration' => isset($rowData['duration']) ? (int)$rowData['duration'] : null,
                     'genre' => $rowData['genre'] ?? null,
@@ -584,6 +587,56 @@ class Music extends \CodeIgniter\Controller
 
             log_message('error', '删除TSV记录失败: ' . $e->getMessage());
             return redirect()->to(get_module_url())->with('error', __('Failed to delete TSV file: ' . $e->getMessage()));
+        }
+    }
+
+    public function delete_music()
+    {
+        // 确保是AJAX请求
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'status' => 'error',
+                'message' => __('Invalid request method')
+            ]);
+        }
+
+        $id = $this->request->getPost('id');
+        if (empty($id)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => __('Invalid music ID')
+            ]);
+        }
+
+        try {
+            // 获取音乐信息以便删除文件
+            $music = $this->model->where('id', $id)->asArray()->first();
+            if (!$music) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => __('Music not found')
+                ]);
+            }
+
+            // 删除数据库记录
+            $deleted = $this->model->delete($id);
+            if (!$deleted) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => __('Failed to delete music record')
+                ]);
+            }
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => __('Music deleted successfully')
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => __('Failed to delete music: ') . $e->getMessage()
+            ]);
         }
     }
 

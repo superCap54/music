@@ -2,11 +2,15 @@
     <div class="sidebar d-flex flex-column align-items-lg-center flex-row-auto h-100">
         <div class="sidebar-logo d-flex flex-column align-items-center flex-column-auto py-3">
             <a href="<?php _ec( base_url("platform") )?>">
-                <img alt="Logo" src="<?php _ec( get_option("website_logo_color", base_url("assets/img/logo-color.svg")) )?>" class="logo-big" style="height: 50px;">
-                <img alt="Logo" src="<?php _ec( get_option("website_logo_mark", base_url("assets/img/logo.svg")) )?>" class="logo-small" style="height: 50px;">
-
+                <img alt="Logo" src="<?php _ec( get_option("website_logo_color", base_url("assets/img/logo-color.svg")) )?>" class="logo-big" style="height: 40px;">
+                <img alt="Logo" src="<?php _ec( get_option("website_logo_mark", base_url("assets/img/logo.svg")) )?>" class="logo-small" style="height: 40px;">
             </a>
         </div>
+        <ul>
+            <li class="nav-item mb-2">
+                <div class="nav-line bg-light m-b-10 m-t-10"></div>
+            </li>
+        </ul>
 
         <div class="sidebar-nav sidebar-nav-one d-flex flex-column flex-column-fluid w-100 pt-lg-0 hide-x-scroll">
             <ul class="nav flex-column">

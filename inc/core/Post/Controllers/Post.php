@@ -574,6 +574,7 @@ class Post extends \CodeIgniter\Controller
                 'audioSrc' => $music['file_src'],
                 'title' => $music['title'],
                 'isrc' => $music['isrc'],
+                'upc' => $music['upc'],
                 'fileExtension' => pathinfo($music['file_src'] ?? '', PATHINFO_EXTENSION),
                 'duration' => $music['duration'],
                 'artist' => $music['artist'],

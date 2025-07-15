@@ -29,13 +29,18 @@
             </div>
             <div class="" style="padding: 1rem;">
                 <h4 class="font-medium mb-1" style="font-size: medium;"><?php echo $item['title']; ?></h4>
-                <p class="text-gray-400 text-sm"><?php echo $item['isrc']; ?></p>
                 <h5>Artist：<?php echo $item['artist']; ?></h5>
+                <p class="text-gray-400 text-sm">isrc:<?php echo $item['isrc']; ?></p>
+                <p class="text-gray-400 text-sm">upc:<?php echo $item['upc']; ?></p>
                 <div class="flex justify-between items-center">
-                    <span class="text-gray-400 text-xs"></span>
-                    <a href="<?php echo $item['file_src']; ?>" download="<?php echo $item['title']; ?>" class="bg-primary hover:bg-opacity-90 text-sm px-4 py-1.5 rounded-button flex items-center whitespace-nowrap text-white">
-                        Download
-                    </a>
+                    <div class="flex gap-2">
+                        <a href="<?php echo $item['file_src']; ?>" download="<?php echo $item['title']; ?>" class="bg-primary hover:bg-opacity-90 text-sm px-4 py-1.5 rounded-button flex items-center whitespace-nowrap text-white">
+                            Download
+                        </a>
+                        <button onclick="deleteMusic('<?php echo $item['id']; ?>', '<?php echo $item['title']; ?>')" class="bg-red-500 hover:bg-opacity-90 text-sm px-4 py-1.5 rounded-button flex items-center whitespace-nowrap text-white">
+                            Delete
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -259,4 +264,28 @@
             $('#musicImportForm')[0].reset();
         });
     });
+    function deleteMusic(id, title) {
+        if (confirm('Are you sure you want to delete "' + title + '"?')) {
+            const btn = $(`button[onclick="deleteMusic('${id}', '${title}')"]`);
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Deleting...');
+
+            $.ajax({
+                url: "<?php _ec( get_module_url('delete_music') )?>",
+                type: "POST",
+                data: {id: id},
+                dataType: 'json',
+                success: function(response) {
+                    if(response.status === 'success') {
+                        // 直接移除对应的音乐卡片
+                        window.location.reload();
+                    } else {
+                        Core.show_notification('error', response.message || '<?php _e("Failed to delete music") ?>');
+                    }
+                },
+                complete: function() {
+                    btn.prop('disabled', false).html('Delete');
+                }
+            });
+        }
+    }
 </script>

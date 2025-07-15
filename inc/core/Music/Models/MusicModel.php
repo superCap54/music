@@ -6,8 +6,8 @@ class MusicModel extends \CodeIgniter\Model
 {
     protected $table = 'sp_music_library';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['artist', 'title', 'cover_url', 'isrc', 'upc', 'file_src', 'duration', 'genre', 'release_date', 'status'];
-    protected $returnType = 'array'; // 明确指定返回数组类型
+    protected $allowedFields = ['artist', 'title', 'isrc', 'upc', 'file_src', 'cover_url', 'genre', 'release_date', 'status'];
+    protected $returnType = 'array'; // 明确指定返回类型
     protected $useSoftDeletes = false;
 
     public function __construct()
@@ -122,5 +122,11 @@ class MusicModel extends \CodeIgniter\Model
             ->limit($limit, $offset)
             ->get()
             ->getResultArray(); // 明确使用getResultArray()
+    }
+
+    // 在 MusicModel 类中添加
+    public function deleteMusic($id)
+    {
+        return $this->delete($id);
     }
 }
