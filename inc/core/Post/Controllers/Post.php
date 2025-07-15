@@ -599,6 +599,7 @@ class Post extends \CodeIgniter\Controller
                     'COUNT(DISTINCT country) as countries_reached'
                 ])
                 ->whereIn('isrc', $licensedIsrcs)
+                ->whereIn('store',['YouTube (Ads)','YouTube (ContentID)','YouTube (Red)'])
                 ->get();
 
             $dashboardResult = $dashboardQuery->getRowArray();
@@ -619,6 +620,7 @@ class Post extends \CodeIgniter\Controller
                 'SUM(earnings_usd) as earnings'
             ])
                 ->whereIn('isrc', $licensedIsrcs)
+                ->whereIn('store',['YouTube (Ads)','YouTube (ContentID)','YouTube (Red)'])
                 ->groupBy('sale_month')
                 ->orderBy('sale_month', 'DESC') // 改为降序排列，最新的月份在前
                 ->limit(12) // 限制12条记录

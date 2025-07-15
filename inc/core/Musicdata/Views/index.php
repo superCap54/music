@@ -8,9 +8,9 @@ if ( !$request->isAJAX() ) {
 
     <?php echo $this->section('content') ?>
 
-    <div class="main-wrapper flex-grow-1 n-scroll">
+    <form class="main-wrapper flex-grow-1 n-scroll actionForm" action="<?php _e( get_module_url('index') )?>" method="POST">
         <?php echo $content ?>
-    </div>
+    </form>
 
     <?php echo $this->endSection() ?>
 
