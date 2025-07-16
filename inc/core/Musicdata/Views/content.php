@@ -33,38 +33,159 @@
         border-radius: 8px;
         padding: 15px;
     }
-
-    /* 折线图颜色调整 */
-    .chart-line-primary {
-        border-color: #4361ee !important; /* 更鲜明的蓝色 */
-        background-color: rgba(67, 97, 238, 0.1) !important;
+    .month-picker-container {
+        position: relative;
+        display: inline-block;
+        width: 180px;
     }
 
-    .chart-line-secondary {
-        border-color: #3a0ca3 !important; /* 深蓝色 */
-        background-color: rgba(58, 12, 163, 0.1) !important;
+    .month-display {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
     }
 
-    /* 环形图颜色调整 */
-    .chart-doughnut {
-        --chart-colors: #4361ee, #3a0ca3, #7209b7, #f72585, #4cc9f0;
+    .month-display:hover {
+        border-color: #aaa;
+    }
+
+    .month-display i {
+        margin-left: 8px;
+        color: #666;
+        transition: transform 0.2s;
+    }
+
+    .month-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 100;
+        display: none;
+        margin-top: 5px;
+    }
+
+    .dropdown-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .current-year {
+        font-weight: bold;
+    }
+
+    .year-nav {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #666;
+        padding: 4px;
+    }
+
+    .year-nav:hover {
+        color: #333;
+    }
+
+    .month-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+        padding: 8px;
+    }
+
+    .month-option {
+        padding: 6px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        border-radius: 3px;
+        font-size: 13px;
+    }
+
+    .month-option:hover {
+        background: #f0f0f0;
+    }
+
+    .month-option.selected {
+        background: #4361ee;
+        color: white;
+    }
+
+    .dropdown-footer {
+        padding: 8px;
+        border-top: 1px solid #eee;
+        text-align: center;
+    }
+
+    .select-all {
+        background: none;
+        border: none;
+        color: #4361ee;
+        cursor: pointer;
+        font-size: 13px;
+    }
+
+    .select-all:hover {
+        text-decoration: underline;
+    }
+
+    /* 下拉菜单展开时的样式 */
+    .month-picker-container.active .month-dropdown {
+        display: block;
+    }
+
+    .month-picker-container.active .month-display i {
+        transform: rotate(180deg);
     }
 </style>
 <div class="container-fluid py-4">
-    <!-- 页面标题和筛选区 -->
+    <!-- 日历选择器 -->
+    <!-- 替换原来的日历选择器部分 -->
     <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="input-group">
-                <select class="form-select" id="timeRange" name="timeRange">
-                    <option value="12">最近12个月</option>
-                    <option value="6">最近6个月</option>
-                    <option value="3">最近3个月</option>
-                    <option value="1">最近1个月</option>
-                    <option value="all" selected>全部时间</option>
-                </select>
-                <button class="btn btn-primary" type="submit">
-                    <i class="fas fa-filter me-1"></i>筛选
-                </button>
+        <div class="month-picker-container">
+            <div class="month-display" id="monthDisplay">
+                <span>全部数据</span>
+                <i class="fas fa-caret-down"></i>
+            </div>
+
+            <div class="month-dropdown" id="monthDropdown">
+                <div class="dropdown-header">
+                    <div class="year-nav prev-year"><i class="fas fa-chevron-left"></i></div>
+                    <span class="current-year">2025</span>
+                    <div class="year-nav next-year"><i class="fas fa-chevron-right"></i></div>
+                </div>
+
+                <div class="month-grid">
+                    <button class="month-option" data-month="01">Jan</button>
+                    <button class="month-option" data-month="02">Feb</button>
+                    <button class="month-option" data-month="03">Mar</button>
+                    <button class="month-option" data-month="04">Apr</button>
+                    <button class="month-option" data-month="05">May</button>
+                    <button class="month-option" data-month="06">Jun</button>
+                    <button class="month-option" data-month="07">Jul</button>
+                    <button class="month-option" data-month="08">Aug</button>
+                    <button class="month-option" data-month="09">Sep</button>
+                    <button class="month-option" data-month="10">Oct</button>
+                    <button class="month-option" data-month="11">Nov</button>
+                    <button class="month-option" data-month="12">Dec</button>
+                </div>
+
+                <div class="dropdown-footer">
+                    <button class="select-all">全部数据</button>
+                </div>
             </div>
         </div>
     </div>
@@ -215,7 +336,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title">国家/地区收入排行</h5>
+                    <h5 class="card-title">Region Rank</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -264,17 +385,17 @@
     const earningsChart = new Chart(earningsCtx, {
         type: 'line',
         data: {
-            labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+            labels: [<?php foreach ($monthlyData as $monthlyDataItem): _ec('"'.$monthlyDataItem['month_name'].'",'); endforeach; ?>],
             datasets: [{
-                label: '播放量',
-                data: [12000, 19000, 15000, 18000, 15600, 21000, 23000, 24500, 19500, 22000, 24000, 26000],
+                label: 'Views',
+                data: [<?php foreach ($monthlyData as $monthlyDataItem): _ec($monthlyDataItem['views'].','); endforeach; ?>],
                 borderColor: 'rgba(75, 192, 192, 1)',
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 tension: 0.3,
                 yAxisID: 'y'
             }, {
-                label: '收入(USD)',
-                data: [450, 680, 520, 640, 580, 720, 780, 820, 650, 750, 820, 890],
+                label: 'Earnings(USD)',
+                data: [<?php foreach ($monthlyData as $monthlyDataItem): _ec($monthlyDataItem['earnings'].','); endforeach; ?>],
                 borderColor: 'rgba(54, 162, 235, 1)',
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 tension: 0.3,
@@ -294,7 +415,7 @@
                     position: 'left',
                     title: {
                         display: true,
-                        text: '播放量'
+                        text: 'Views'
                     }
                 },
                 y1: {
@@ -303,7 +424,7 @@
                     position: 'right',
                     title: {
                         display: true,
-                        text: '收入(USD)'
+                        text: 'Earnings(USD)'
                     },
                     grid: {
                         drawOnChartArea: false,
@@ -318,9 +439,9 @@
     const distributionChart = new Chart(distributionCtx, {
         type: 'doughnut',
         data: {
-            labels: ['美国', '英国', '德国', '日本', '法国', '其他'],
+            labels: [<?php foreach ($countryChart as $countryChartItem): _ec('"'.$countryChartItem['country'].'",'); endforeach; ?>],
             datasets: [{
-                data: [42.5, 21.3, 12.7, 8.4, 6.2, 8.9],
+                data: [<?php foreach ($countryChart as $countryChartItem): _ec($countryChartItem['percentage'].','); endforeach; ?>],
                 backgroundColor: [
                     'rgba(54, 162, 235, 0.7)',
                     'rgba(255, 99, 132, 0.7)',
@@ -346,6 +467,107 @@
                     }
                 }
             }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.querySelector('.month-picker-container');
+        const display = document.getElementById('monthDisplay');
+        const dropdown = document.getElementById('monthDropdown');
+        const yearSpan = document.querySelector('.current-year');
+        const prevYearBtn = document.querySelector('.prev-year');
+        const nextYearBtn = document.querySelector('.next-year');
+        const monthOptions = document.querySelectorAll('.month-option');
+        const selectAllBtn = document.querySelector('.select-all');
+
+        let currentYear = new Date().getFullYear();
+        let selectedMonth = null;
+
+        // 初始化年份显示
+        yearSpan.textContent = currentYear;
+
+        // 切换下拉菜单
+        display.addEventListener('click', function(e) {
+            e.stopPropagation();
+            container.classList.toggle('active');
+        });
+
+        // 年份导航
+        prevYearBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            currentYear--;
+            yearSpan.textContent = currentYear;
+        });
+
+        nextYearBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            currentYear++;
+            yearSpan.textContent = currentYear;
+        });
+
+        // 选择月份
+        monthOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.stopPropagation();
+
+                // 移除之前的选择
+                monthOptions.forEach(opt => opt.classList.remove('selected'));
+
+                // 标记当前选择
+                this.classList.add('selected');
+                selectedMonth = this.dataset.month;
+
+                // 更新显示
+                display.querySelector('span').textContent = `${currentYear}-${selectedMonth}`;
+
+                // 关闭下拉菜单
+                container.classList.remove('active');
+
+                // 直接跳转到新URL
+                window.location.href = `<?php echo base_url('musicdata/index') ?>/${currentYear}-${selectedMonth}`;
+            });
+        });
+
+        // 选择全部数据
+        selectAllBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+
+            // 清除选择
+            monthOptions.forEach(opt => opt.classList.remove('selected'));
+            selectedMonth = null;
+
+            // 更新显示
+            display.querySelector('span').textContent = '全部数据';
+
+            // 关闭下拉菜单
+            container.classList.remove('active');
+
+            // 跳转到基础URL
+            window.location.href = '<?php echo base_url('musicdata/index') ?>';
+        });
+
+        // 点击外部关闭下拉菜单
+        document.addEventListener('click', function() {
+            container.classList.remove('active');
+        });
+
+        // 初始化当前选中的月份（如果有）
+        const pathParts = window.location.pathname.split('/');
+        const dateParam = pathParts[pathParts.length - 1];
+
+        if (dateParam && /^\d{4}-\d{2}$/.test(dateParam)) {
+            const [year, month] = dateParam.split('-');
+            currentYear = parseInt(year);
+            selectedMonth = month;
+            yearSpan.textContent = currentYear;
+
+            // 标记选中的月份
+            document.querySelectorAll('.month-option').forEach(option => {
+                if (option.dataset.month === month) {
+                    option.classList.add('selected');
+                    display.querySelector('span').textContent = dateParam;
+                }
+            });
         }
     });
 </script>
