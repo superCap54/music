@@ -188,6 +188,7 @@
                 </div>
             </div>
         </div>
+        <div class="text-muted" style="font-size: 1rem; white-space: nowrap; padding-top: 1rem;">*数据延迟2-3个月</div>
     </div>
 
     <!-- 数据概览卡片 -->
