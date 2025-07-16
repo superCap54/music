@@ -262,9 +262,20 @@
                     <h5 class="card-title"><?php _e('Monthly Performance Trends') ?></h5>
                 </div>
                 <div class="card-body">
+                    <?php if (!empty($monthlyData)): ?>
                     <div class="chart-container">
                         <canvas id="earningsChart"></canvas>
                     </div>
+                    <?php else: ?>
+                        <div class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-chart-line fa-4x text-muted mb-4"></i>
+                                <h4 class="text-muted">No data available yet</h4>
+                                <p class="text-muted mb-4">Keep creating! Your performance data will appear here soon.</p>
+                                <p class="text-muted">暂无数据，继续努力！您的表现数据很快就会显示在这里</p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -274,9 +285,20 @@
                     <h5 class="card-title">收入分布</h5>
                 </div>
                 <div class="card-body">
+                    <?php if (!empty($countryChart)): ?>
                     <div class="chart-container">
                         <canvas id="earningsDistributionChart"></canvas>
                     </div>
+                    <?php else: ?>
+                        <div class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-globe-americas fa-4x text-muted mb-4"></i>
+                                <h4 class="text-muted">No distribution data yet</h4>
+                                <p class="text-muted mb-4">Your global reach will be visualized here once available</p>
+                                <p class="text-muted">暂无分布数据，您的全球影响力数据将在此可视化</p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -303,6 +325,7 @@
                             </tr>
                             </thead>
                             <tbody>
+                            <?php if (!empty($songsDataList)): ?>
                             <?php foreach ($songsDataList as $songDataItem): ?>
                             <tr>
                                 <td>
@@ -323,6 +346,17 @@
                                 <td>Youtube</td>
                             </tr>
                             <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <i class="fas fa-music fa-3x text-muted mb-3"></i>
+                                            <h5 class="text-muted">No song data available</h5>
+                                            <p class="text-muted">No song data found for the current filter criteria</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -351,6 +385,7 @@
                             </tr>
                             </thead>
                             <tbody>
+                            <?php if (!empty($countryEarnings)): ?>
                             <?php foreach ($countryEarnings as $countryEarningsItem): ?>
                             <tr>
                                 <td><?php _ec($countryEarningsItem['index']); ?></td>
@@ -365,7 +400,18 @@
                                     </div>
                                 </td>
                             </tr>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <i class="fas fa-globe fa-3x text-muted mb-3"></i>
+                                            <h5 class="text-muted">No region data available</h5>
+                                            <p class="text-muted">No region data found for the current filter criteria</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
