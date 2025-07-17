@@ -416,8 +416,6 @@ class Music extends \CodeIgniter\Controller
         ]);
     }
 
-
-
     public function import_tsv() {
         // 1. 检查文件上传
         if (empty($_FILES['tsv_file']['tmp_name'])) {
@@ -473,11 +471,18 @@ class Music extends \CodeIgniter\Controller
             }
 
             $row_data = array_combine($header, $row);
+
+            // 统一日期格式为 YYYY-MM
+            $sale_month = $row_data['Sale Month'] ?? null;
+            if ($sale_month) {
+                $sale_month = $this->_normalizeSaleMonth($sale_month);
+            }
+
             $db_data = [
                 'distrokid_tsv_file_name' => $file_name,
                 'tsv_md5' => $file_md5,
                 'reporting_date' => $row_data['Reporting Date'] ?? null,
-                'sale_month' => $row_data['Sale Month'] ?? null,
+                'sale_month' => $sale_month, // 使用统一格式 YYYY-MM
                 'store' => $row_data['Store'] ?? null,
                 'artist' => $row_data['Artist'] ?? null,
                 'title' => $row_data['Title'] ?? null,
@@ -486,7 +491,7 @@ class Music extends \CodeIgniter\Controller
                 'quantity' => (int)($row_data['Quantity'] ?? 0),
                 'team_percentage' => (float)($row_data['Team Percentage'] ?? 100.00),
                 'product_type' => $row_data['Song/Album'] ?? 'Song',
-                'country' => $row_data['Country of Sale'] ?? null, // 新增country字段
+                'country' => $row_data['Country of Sale'] ?? null,
                 'royalties_withheld' => (bool)($row_data['Songwriter Royalties Withheld'] ?? false),
                 'earnings_usd' => (float)($row_data['Earnings (USD)'] ?? 0),
                 'created_at' => date('Y-m-d H:i:s'),
@@ -510,26 +515,26 @@ class Music extends \CodeIgniter\Controller
             ]);
         }
 
-        // 9. 批量预检去重（根据新的唯一键要求）
+        // 9. 批量预检去重
         $isrcList = array_unique(array_column($batch_data, 'isrc'));
         $storeList = array_unique(array_column($batch_data, 'store'));
         $monthList = array_unique(array_column($batch_data, 'sale_month'));
-        $countryList = array_unique(array_column($batch_data, 'country')); // 新增country字段
+        $countryList = array_unique(array_column($batch_data, 'country'));
 
-        // 查询可能重复的记录（使用新的复合键）
+        // 查询可能重复的记录
         $existingRecords = $this->db->table('sp_music_royalties')
-            ->select("CONCAT(isrc, '|', store, '|', sale_month, '|', country) as composite_key") // 新增country字段
+            ->select("CONCAT(isrc, '|', store, '|', sale_month, '|', country) as composite_key")
             ->whereIn('isrc', $isrcList)
             ->whereIn('store', $storeList)
             ->whereIn('sale_month', $monthList)
-            ->whereIn('country', $countryList) // 新增country字段
+            ->whereIn('country', $countryList)
             ->get()
             ->getResultArray();
 
         // 构建快速查找表
         $existingKeys = array_flip(array_column($existingRecords, 'composite_key'));
 
-        // 10. 内存去重处理（使用新的复合键）
+        // 10. 内存去重处理
         $currentBatchKeys = [];
         $filtered_batch = [];
 
@@ -571,35 +576,91 @@ class Music extends \CodeIgniter\Controller
         }
 
         // 12. 返回最终结果
-//        return $this->response->setJSON([
-//            'status' => 'success',
-//            'message' => sprintf(
-//                __("Import completed. Total: %d, Success: %d, Format Errors: %d, Duplicates: %d, DB Errors: %d"),
-//                $total_lines,
-//                $success_count,
-//                $format_error_count,
-//                $duplicate_count,
-//                $db_error_count
-//            ),
-//            'stats' => [
-//                'total_lines' => $total_lines,
-//                'success' => $success_count,
-//                'format_errors' => $format_error_count,
-//                'duplicates' => $duplicate_count,
-//                'db_errors' => $db_error_count
-//            ]
-//        ]);
+        $message = ([
+            'status' => 'success',
+            'message' => sprintf(
+                __("Import completed. Total: %d, Success: %d, Format Errors: %d, Duplicates: %d, DB Errors: %d"),
+                $total_lines,
+                $success_count,
+                $format_error_count,
+                $duplicate_count,
+                $db_error_count
+            ),
+            'stats' => [
+                'total_lines' => $total_lines,
+                'success' => $success_count,
+                'format_errors' => $format_error_count,
+                'duplicates' => $duplicate_count,
+                'db_errors' => $db_error_count
+            ]
+        ]);
 
         return redirect()->to(get_module_url())->with('success', $message);
     }
 
-// 更新复合键生成方法（包含country字段）
+    /**
+     * 统一销售月份格式为 YYYY-MM
+     */
+    private function _normalizeSaleMonth(string $dateStr): string {
+        // 尝试解析不同格式的日期
+        try {
+            // 格式1: "25-May" (Distrokid格式)
+            if (preg_match('/^(\d{1,2})-([a-zA-Z]{3})$/', $dateStr, $matches)) {
+                $monthMap = [
+                    'Jan' => '01', 'Feb' => '02', 'Mar' => '03', 'Apr' => '04',
+                    'May' => '05', 'Jun' => '06', 'Jul' => '07', 'Aug' => '08',
+                    'Sep' => '09', 'Oct' => '10', 'Nov' => '11', 'Dec' => '12'
+                ];
+
+                $month = $matches[2];
+                $year = "20" . $matches[1]; // 将 "25" 转换为 "2025"
+                return $year . '-' . ($monthMap[$month] ?? '01');
+            }
+
+            // 格式2: "May-25" (另一种常见格式)
+            if (preg_match('/^([a-zA-Z]{3})-(\d{1,2})$/', $dateStr, $matches)) {
+                $monthMap = [
+                    'Jan' => '01', 'Feb' => '02', 'Mar' => '03', 'Apr' => '04',
+                    'May' => '05', 'Jun' => '06', 'Jul' => '07', 'Aug' => '08',
+                    'Sep' => '09', 'Oct' => '10', 'Nov' => '11', 'Dec' => '12'
+                ];
+
+                $month = $matches[1];
+                $year = "20" . $matches[2]; // 将 "25" 转换为 "2025"
+                return $year . '-' . ($monthMap[$month] ?? '01');
+            }
+
+            // 格式3: "2023-05" (标准格式)
+            if (preg_match('/^\d{4}-\d{2}$/', $dateStr)) {
+                return $dateStr;
+            }
+
+            // 格式4: "May-2023"
+            if (preg_match('/^([a-zA-Z]{3})-(\d{4})$/', $dateStr, $matches)) {
+                $monthMap = [
+                    'Jan' => '01', 'Feb' => '02', 'Mar' => '03', 'Apr' => '04',
+                    'May' => '05', 'Jun' => '06', 'Jul' => '07', 'Aug' => '08',
+                    'Sep' => '09', 'Oct' => '10', 'Nov' => '11', 'Dec' => '12'
+                ];
+
+                $month = $matches[1];
+                $year = $matches[2];
+                return $year . '-' . ($monthMap[$month] ?? '01');
+            }
+        } catch (\Exception $e) {
+            log_message('error', '日期格式转换失败: ' . $e->getMessage());
+        }
+
+        return $dateStr; // 无法识别则返回原值
+    }
+
+// 复合键生成方法
     private function _generateCompositeKey(array $data): string {
         return implode('|', [
             $data['isrc'] ?? '',
             $data['store'] ?? '',
             $data['sale_month'] ?? '',
-            $data['country'] ?? '' // 新增country字段
+            $data['country'] ?? ''
         ]);
     }
 
