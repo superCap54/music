@@ -14,7 +14,7 @@ class Musicdata extends \CodeIgniter\Controller
         $this->db = \Config\Database::connect();
     }
 
-    public function index($sale_month = false)
+    public function index($report_month = false)
     {
         $user_id = get_user("id");
 
@@ -47,7 +47,7 @@ class Musicdata extends \CodeIgniter\Controller
 
         if (!empty($licensedIsrcs)) {
             // 2. 获取仪表盘数据
-            $dashboardResult = $this->model->getDashboardData($licensedIsrcs, $sale_month);
+            $dashboardResult = $this->model->getDashboardData($licensedIsrcs, $report_month);
             $dashboardData = [
                 'views' => $dashboardResult['total_views'] ?? 0,
                 'earnings' => $dashboardResult['total_earnings'] ?? 0,
@@ -55,13 +55,13 @@ class Musicdata extends \CodeIgniter\Controller
             ];
 
             // 3. 获取月度数据
-            $rawMonthlyData = $this->model->getMonthlyData($licensedIsrcs, $sale_month);
+            $rawMonthlyData = $this->model->getMonthlyData($licensedIsrcs, $report_month);
             usort($rawMonthlyData, function ($a, $b) {
                 return strcmp($a['month'], $b['month']);
             });
             $monthlyData = $this->completeBillingCycleData($rawMonthlyData);
             // 4. 获取歌曲表现数据
-            $performanceResults = $this->model->getSongPerformanceData($licensedIsrcs, $sale_month);
+            $performanceResults = $this->model->getSongPerformanceData($licensedIsrcs, $report_month);
             foreach ($performanceResults as $row) {
                 $songsDataList[] = [
                     'title' => $songsIsrcList[$row['isrc']]['title'],
@@ -76,7 +76,7 @@ class Musicdata extends \CodeIgniter\Controller
             }
 
             // 5. 获取国家收入数据
-            $countryEarnings = $this->model->getCountryEarnings($licensedIsrcs, $sale_month);
+            $countryEarnings = $this->model->getCountryEarnings($licensedIsrcs, $report_month);
 
             // 处理国家图表数据
             $totalEarnings = $dashboardResult['total_earnings'] ?? 1;

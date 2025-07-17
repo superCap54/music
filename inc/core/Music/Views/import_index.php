@@ -7,8 +7,9 @@ if ( !$request->isAJAX() ) {
     ?>
 
     <?php echo $this->section('content') ?>
-
+    <div class="main-wrapper flex-grow-1 n-scroll">
         <?php echo $content ?>
+    </div>
 
     <?php echo $this->endSection() ?>
 

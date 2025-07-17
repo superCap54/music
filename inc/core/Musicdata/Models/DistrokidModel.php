@@ -21,7 +21,7 @@ class DistrokidModel extends Model
         return $builder->get()->getResultArray();
     }
 
-    public function getDashboardData($licensedIsrcs, $sale_month = null)
+    public function getDashboardData($licensedIsrcs, $reporting_date = null)
     {
         $builder = $this->db->table('sp_music_royalties')
             ->select([
@@ -32,14 +32,14 @@ class DistrokidModel extends Model
             ->whereIn('isrc', $licensedIsrcs)
             ->whereIn('store', ['YouTube (Ads)', 'YouTube (ContentID)', 'YouTube (Red)']);
 
-        if ($sale_month) {
-            $builder->where('sale_month', $sale_month);
+        if ($reporting_date) {
+            $builder->where('reporting_date', $reporting_date);
         }
 
         return $builder->get()->getRowArray();
     }
 
-    public function getMonthlyData($licensedIsrcs, $sale_month = null)
+    public function getMonthlyData($licensedIsrcs, $reporting_date = null)
     {
         $builder = $this->db->table('sp_music_royalties')
             ->select([
@@ -50,18 +50,18 @@ class DistrokidModel extends Model
             ->whereIn('isrc', $licensedIsrcs)
             ->whereIn('store', ['YouTube (Ads)', 'YouTube (ContentID)', 'YouTube (Red)']);
 
-        if ($sale_month) {
-            $builder->where('sale_month', $sale_month);
+        if ($reporting_date) {
+            $builder->where('reporting_date', $reporting_date);
         }
 
-        return $builder->groupBy('sale_month')
-            ->orderBy('sale_month', 'DESC')
+        return $builder->groupBy('reporting_date')
+            ->orderBy('reporting_date', 'DESC')
             ->limit(12)
             ->get()
             ->getResultArray();
     }
 
-    public function getSongPerformanceData($licensedIsrcs, $sale_month = null)
+    public function getSongPerformanceData($licensedIsrcs, $report_month = null)
     {
         $builder = $this->db->table('sp_music_royalties a');
         $builder->select([
@@ -81,17 +81,17 @@ class DistrokidModel extends Model
         $builder->whereIn('a.isrc', $licensedIsrcs);
         $builder->whereIn('a.store', ['YouTube (Ads)', 'YouTube (ContentID)', 'YouTube (Red)']);
 
-        if ($sale_month) {
-            $builder->where('a.sale_month', $sale_month);
+        if ($report_month) {
+            $builder->where('a.reporting_date', $report_month);
         }
 
         return $builder->groupBy('a.isrc', 'a.sale_month', 'a.title')
-            ->orderBy('a.sale_month', 'DESC')
+            ->orderBy('a.reporting_date', 'DESC')
             ->get()
             ->getResultArray();
     }
 
-    public function getCountryEarnings($licensedIsrcs, $sale_month = null)
+    public function getCountryEarnings($licensedIsrcs, $report_month = null)
     {
         $builder = $this->db->table('sp_music_royalties')
             ->select([
@@ -102,8 +102,8 @@ class DistrokidModel extends Model
             ->whereIn('isrc', $licensedIsrcs)
             ->whereIn('store', ['YouTube (Ads)', 'YouTube (ContentID)', 'YouTube (Red)']);
 
-        if ($sale_month) {
-            $builder->where('sale_month', $sale_month);
+        if ($report_month) {
+            $builder->where('reporting_date', $report_month);
         }
 
         return $builder->groupBy('country')

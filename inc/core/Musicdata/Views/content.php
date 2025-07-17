@@ -481,6 +481,7 @@
         }
     });
 
+    <?php if (!empty($countryChart)): ?>
     // 收入分布图表
     const distributionCtx = document.getElementById('earningsDistributionChart').getContext('2d');
     const distributionChart = new Chart(distributionCtx, {
@@ -516,6 +517,7 @@
             }
         }
     });
+    <?php endif; ?>
 
     document.addEventListener('DOMContentLoaded', function() {
         const container = document.querySelector('.month-picker-container');
