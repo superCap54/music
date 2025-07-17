@@ -107,7 +107,7 @@ class Music extends \CodeIgniter\Controller
         $team_id = get_team("id");
         switch ($type) {
             case 'multi':
-                
+
                 $type = post("type");
                 $social_network = post("social_network");
 
@@ -123,7 +123,7 @@ class Music extends \CodeIgniter\Controller
                     case 'unpublished':
                         $status = 4;
                         break;
-                    
+
                     default:
                         ms([
                             "status" => "error",
@@ -143,7 +143,7 @@ class Music extends \CodeIgniter\Controller
                     "message" => __("Success")
                 ]);
                 break;
-            
+
             default:
                 $ids = post("id");
                 db_delete( TB_POSTS,  [ "ids" => $ids, "team_id" => $team_id ]);
@@ -419,121 +419,188 @@ class Music extends \CodeIgniter\Controller
 
 
     public function import_tsv() {
-        // 检查是否有文件上传
+        // 1. 检查文件上传
         if (empty($_FILES['tsv_file']['tmp_name'])) {
-            ms([
+            return $this->response->setJSON([
                 "status" => "error",
                 "message" => __("Please select a TSV file to upload")
             ]);
         }
 
-        // 获取上传的文件信息
+        // 2. 获取文件信息
         $file_path = $_FILES['tsv_file']['tmp_name'];
         $file_name = $_FILES['tsv_file']['name'];
         $file_md5 = md5_file($file_path);
 
-        // 检查文件类型
+        // 3. 检查文件类型
         $file_ext = pathinfo($file_name, PATHINFO_EXTENSION);
         if (strtolower($file_ext) !== 'tsv') {
-            ms([
+            return $this->response->setJSON([
                 "status" => "error",
                 "message" => __("Only TSV files are allowed")
             ]);
         }
 
-        // 检查是否已导入过该文件
-        $existing_file = $this->db->table('sp_music_royalties')
-            ->where('tsv_md5', $file_md5)
-            ->countAllResults();
-
-        if ($existing_file > 0) {
-            ms([
+        // 4. 检查文件是否已导入过
+        if ($this->db->table('sp_music_royalties')->where('tsv_md5', $file_md5)->countAllResults() > 0) {
+            return $this->response->setJSON([
                 "status" => "error",
                 "message" => __("This TSV file has already been imported")
             ]);
         }
 
-        // 读取TSV文件内容
-        $tsv_data = file_get_contents($file_path);
-        // 替换所有换行符为 \n，再分割
-        $tsv_data = str_replace(["\r\n", "\r"], "\n", $tsv_data);
+        // 5. 读取并解析TSV文件
+        $tsv_data = str_replace(["\r\n", "\r"], "\n", file_get_contents($file_path));
         $lines = explode("\n", trim($tsv_data));
-
-        // 移除标题行
         $header = str_getcsv(array_shift($lines), "\t");
 
-        // 准备批量插入数据
-        $batch_data = [];
+        // 6. 初始化计数器
+        $total_lines = count($lines);
         $success_count = 0;
-        $error_count = 0;
+        $format_error_count = 0;
+        $duplicate_count = 0;
+        $db_error_count = 0;
 
+        // 7. 准备批量数据
+        $batch_data = [];
         foreach ($lines as $line) {
             if (empty(trim($line))) continue;
 
             $row = str_getcsv($line, "\t");
-
-            // 确保行数据与标题数量匹配
             if (count($row) !== count($header)) {
-                $error_count++;
+                $format_error_count++;
                 continue;
             }
 
-            // 将行数据与标题关联
             $row_data = array_combine($header, $row);
+            $db_data = [
+                'distrokid_tsv_file_name' => $file_name,
+                'tsv_md5' => $file_md5,
+                'reporting_date' => $row_data['Reporting Date'] ?? null,
+                'sale_month' => $row_data['Sale Month'] ?? null,
+                'store' => $row_data['Store'] ?? null,
+                'artist' => $row_data['Artist'] ?? null,
+                'title' => $row_data['Title'] ?? null,
+                'isrc' => $row_data['ISRC'] ?? null,
+                'upc' => $row_data['UPC'] ?? null,
+                'quantity' => (int)($row_data['Quantity'] ?? 0),
+                'team_percentage' => (float)($row_data['Team Percentage'] ?? 100.00),
+                'product_type' => $row_data['Song/Album'] ?? 'Song',
+                'country' => $row_data['Country of Sale'] ?? null, // 新增country字段
+                'royalties_withheld' => (bool)($row_data['Songwriter Royalties Withheld'] ?? false),
+                'earnings_usd' => (float)($row_data['Earnings (USD)'] ?? 0),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
 
-            try {
-                // 格式化数据以匹配数据库结构
-                $db_data = [
-                    'distrokid_tsv_file_name' => $file_name,
-                    'tsv_md5' => $file_md5,
-                    'reporting_date' => $row_data['Reporting Date'] ?? null,
-                    'sale_month' => $row_data['Sale Month'] ?? null,
-                    'store' => $row_data['Store'] ?? null,
-                    'artist' => $row_data['Artist'] ?? null,
-                    'title' => $row_data['Title'] ?? null,
-                    'isrc' => $row_data['ISRC'] ?? null,
-                    'upc' => $row_data['UPC'] ?? null,
-                    'quantity' => (int)($row_data['Quantity'] ?? 0),
-                    'team_percentage' => (float)($row_data['Team Percentage'] ?? 100.00),
-                    'product_type' => $row_data['Song/Album'] ?? 'Song',
-                    'country' => $row_data['Country of Sale'] ?? null,
-                    'royalties_withheld' => (bool)($row_data['Songwriter Royalties Withheld'] ?? false),
-                    'earnings_usd' => (float)($row_data['Earnings (USD)'] ?? 0),
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s')
-                ];
-
-                // 验证必要字段
-                if (empty($db_data['reporting_date']) || empty($db_data['isrc']) || empty($db_data['title'])) {
-                    $error_count++;
-                    continue;
-                }
-
-                $batch_data[] = $db_data;
-                $success_count++;
-
-                // 每500条批量插入一次
-                if (count($batch_data) >= 500) {
-                    $this->db->table('sp_music_royalties')->insertBatch($batch_data);
-                    $batch_data = [];
-                }
-
-            } catch (\Exception $e) {
-                $error_count++;
-                log_message('error', 'TSV导入错误: ' . $e->getMessage());
+            // 必要字段验证
+            if (empty($db_data['isrc']) || empty($db_data['title'])) {
+                $format_error_count++;
                 continue;
             }
+
+            $batch_data[] = $db_data;
         }
 
-        // 插入剩余数据
-        if (!empty($batch_data)) {
-            $this->db->table('sp_music_royalties')->insertBatch($batch_data);
+        // 8. 如果没有有效数据，直接返回
+        if (empty($batch_data)) {
+            return $this->response->setJSON([
+                "status" => "error",
+                "message" => __("No valid data found in TSV file")
+            ]);
         }
 
-        // 返回导入结果
-        $message = sprintf(__("Import completed. Success: %d, Failed: %d"), $success_count, $error_count);
+        // 9. 批量预检去重（根据新的唯一键要求）
+        $isrcList = array_unique(array_column($batch_data, 'isrc'));
+        $storeList = array_unique(array_column($batch_data, 'store'));
+        $monthList = array_unique(array_column($batch_data, 'sale_month'));
+        $countryList = array_unique(array_column($batch_data, 'country')); // 新增country字段
+
+        // 查询可能重复的记录（使用新的复合键）
+        $existingRecords = $this->db->table('sp_music_royalties')
+            ->select("CONCAT(isrc, '|', store, '|', sale_month, '|', country) as composite_key") // 新增country字段
+            ->whereIn('isrc', $isrcList)
+            ->whereIn('store', $storeList)
+            ->whereIn('sale_month', $monthList)
+            ->whereIn('country', $countryList) // 新增country字段
+            ->get()
+            ->getResultArray();
+
+        // 构建快速查找表
+        $existingKeys = array_flip(array_column($existingRecords, 'composite_key'));
+
+        // 10. 内存去重处理（使用新的复合键）
+        $currentBatchKeys = [];
+        $filtered_batch = [];
+
+        foreach ($batch_data as $item) {
+            $compositeKey = $this->_generateCompositeKey($item);
+
+            // 检查同一批次内是否重复
+            if (isset($currentBatchKeys[$compositeKey])) {
+                $duplicate_count++;
+                continue;
+            }
+
+            // 检查数据库是否重复
+            if (isset($existingKeys[$compositeKey])) {
+                $duplicate_count++;
+                continue;
+            }
+
+            $filtered_batch[] = $item;
+            $currentBatchKeys[$compositeKey] = true;
+        }
+
+        // 11. 分批写入（添加事务保护）
+        $this->db->transStart();
+        try {
+            $chunkSize = 500;
+            $chunks = array_chunk($filtered_batch, $chunkSize);
+
+            foreach ($chunks as $chunk) {
+                $this->db->table('sp_music_royalties')->insertBatch($chunk);
+                $success_count += count($chunk);
+            }
+
+            $this->db->transComplete();
+        } catch (\Exception $e) {
+            $this->db->transRollback();
+            $db_error_count = count($filtered_batch);
+            log_message('error', 'TSV导入事务失败: ' . $e->getMessage());
+        }
+
+        // 12. 返回最终结果
+//        return $this->response->setJSON([
+//            'status' => 'success',
+//            'message' => sprintf(
+//                __("Import completed. Total: %d, Success: %d, Format Errors: %d, Duplicates: %d, DB Errors: %d"),
+//                $total_lines,
+//                $success_count,
+//                $format_error_count,
+//                $duplicate_count,
+//                $db_error_count
+//            ),
+//            'stats' => [
+//                'total_lines' => $total_lines,
+//                'success' => $success_count,
+//                'format_errors' => $format_error_count,
+//                'duplicates' => $duplicate_count,
+//                'db_errors' => $db_error_count
+//            ]
+//        ]);
 
         return redirect()->to(get_module_url())->with('success', $message);
+    }
+
+// 更新复合键生成方法（包含country字段）
+    private function _generateCompositeKey(array $data): string {
+        return implode('|', [
+            $data['isrc'] ?? '',
+            $data['store'] ?? '',
+            $data['sale_month'] ?? '',
+            $data['country'] ?? '' // 新增country字段
+        ]);
     }
 
     /**
