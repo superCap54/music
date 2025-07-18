@@ -27,7 +27,7 @@ class Google extends \CodeIgniter\Controller
      */
     public function refresh_token()
     {
-        $userId = get_team("id");
+        $userId = get_user("id");
         if (empty($userId)) {
             throw new \Exception('User not authenticated');
         }
@@ -55,8 +55,6 @@ class Google extends \CodeIgniter\Controller
             ];
         }
         $refreshToken = $tokenData['refresh_token'];
-        $proxy = '136.0.207.84:6661';
-        $proxyAuth = 'iggndszq:iguhz2og7m4t';
 
         // 3. 初始化Google客户端
         $client = new \Google\Client();
@@ -66,6 +64,8 @@ class Google extends \CodeIgniter\Controller
         $client->setApprovalPrompt('force');
 
         // 设置代理
+        $proxy = '38.154.227.167:5868';
+        $proxyAuth = 'iggndszq:iguhz2og7m4t';
         $httpClient = new \GuzzleHttp\Client([
             'proxy' => [
                 'http' => "socks5://{$proxyAuth}@{$proxy}",
@@ -135,15 +135,14 @@ class Google extends \CodeIgniter\Controller
             $drive = new \Google\Service\Drive($client);
 
             // 4. 设置代理
-            $proxy = '136.0.207.84:6661';
+            $proxy = '38.154.227.167:5868';
             $proxyAuth = 'iggndszq:iguhz2og7m4t';
-
             $httpClient = new \GuzzleHttp\Client([
                 'proxy' => [
                     'http' => "socks5://{$proxyAuth}@{$proxy}",
                     'https' => "socks5://{$proxyAuth}@{$proxy}",
                 ],
-                'verify' => false
+                'verify' => false // 如果需要忽略SSL验证
             ]);
             $client->setHttpClient($httpClient);
 
@@ -194,7 +193,7 @@ class Google extends \CodeIgniter\Controller
             $accessToken = $tokenStatus['access_token'];
 
             // 2. 代理配置
-            $proxy = '136.0.207.84:6661';
+            $proxy = '38.154.227.167:5868';
             $proxyAuth = 'iggndszq:iguhz2og7m4t';
 
             // 3. 构建下载URL

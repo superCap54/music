@@ -9,68 +9,420 @@ class Bulk_post extends \CodeIgniter\Controller
         $this->post_model = new \Core\Post\Models\PostModel();
         $this->account_manager_model = new \Core\Account_manager\Models\Account_managerModel();
         $this->workflows_model = new \Core\Post\Models\WorkflowsModel();
+        $this->user_workflows_model = new \Core\Users\Models\UserWorkflowsModel();
+
         //获取当前用户id
         $this->user_id = get_user("id");
     }
 
-    public function index()
+    public function add_widget()
     {
-        $post_id = get("post_id");
-        $team_id = get_team("id");
-        $caption = get("caption");
-        //传参
-        $is_enabled = get("is_enabled");
 //      获取能运行的workflows
         $workflows = $this->workflows_model->getAllWorkflows(true);
-//      获取当前用户的workflows状态
-        $userWorkflows = $this->workflows_model->getUserWorkflows($this->user_id);
-//      创建用户工作流ID到状态的映射表
-        $userWorkflowStatusMap = [];
-        foreach ($userWorkflows as $userWorkflow) {
-            $userWorkflowStatusMap[$userWorkflow['workflow_id']] = [
-                'user_workflow_id' => $userWorkflow['user_workflow_id'],
-                'is_enabled' => $userWorkflow['is_enabled']
-            ];
-        }
-//      合并数据到workflows数组
-        $workflowsWithStatus = [];
-        foreach ($workflows as $workflow) {
-            $workflowId = $workflow['workflow_id'];
 
-            $mergedWorkflow = $workflow;
-            $mergedWorkflow['user_is_enabled'] = false; // 默认值
-            $mergedWorkflow['user_workflow_id'] = null; // 默认值
-
-            if (isset($userWorkflowStatusMap[$workflowId])) {
-                $mergedWorkflow['user_is_enabled'] = (bool)$userWorkflowStatusMap[$workflowId]['is_enabled'];
-                $mergedWorkflow['user_workflow_id'] = $userWorkflowStatusMap[$workflowId]['user_workflow_id'];
-            }
-
-            $workflowsWithStatus[] = $mergedWorkflow;
-        }
-
-//      根据传入的is_enabled参数过滤结果
-        if ($is_enabled !== null) {
-            $filterEnabled = (bool)$is_enabled;
-            $workflowsWithStatus = array_filter($workflowsWithStatus, function ($workflow) use ($filterEnabled) {
-                return $workflow['user_is_enabled'] === $filterEnabled;
-            });
-        }
-
-//      重新索引数组（如果进行了过滤）
-        $workflowsWithStatus = array_values($workflowsWithStatus);
-        $post = db_get( "*", TB_POSTS, [ "ids" => $post_id, "team_id" => $team_id ] );
         $data = [
             "title" => $this->config['name'],
             "desc" => $this->config['desc'],
             "config" => $this->config,
-            "post" => json_encode($post),
             "content" => view('Core\Bulk_post\Views\make',[
-                'workflows' => $workflowsWithStatus,  // 明确指定变量名
-                "post" => $post
+                'workflows' => $workflows,  // 明确指定变量名
             ])
         ];
         return view('Core\Bulk_post\Views\index', $data);
+    }
+
+    public function add_workflow()
+    {
+        // 获取当前用户ID
+        if (empty($this->user_id)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'User not authenticated'
+            ]);
+        }
+
+        // 获取输入数据
+        $workflow_id = post('workflow_id');
+        $workflow_name = post('workflow_name');
+
+        // 检查用户已有多少个相同workflow_id的工作流
+        $count = $this->user_workflows_model
+            ->where('user_id', $this->user_id)
+            ->where('workflow_id', $workflow_id)
+            ->countAllResults();
+
+        if ($count >= 10) { // 这里先默认最多允许10个，理论上这里是加用户权限，权限越高 这里数量也多，但是没做。待开发
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'You can only create up to 10 instances of this workflow'
+            ]);
+        }
+
+        // 准备插入数据
+        $data = [
+            'user_id' => $this->user_id,
+            'workflow_id' => $workflow_id,
+            'workflow_name' => $workflow_name,
+            'accounts' => '',
+            'title' => '', // 默认空标题
+            'descript' => '', // 默认空描述
+            'category' => '', // 默认空分类
+            'tags' => '', // 默认空标签
+            'custom_data' => json_encode([]), // 默认空JSON对象
+            'is_enabled' => 0, // 默认启用
+            'schedule_type' => 'none', // 默认无计划
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        try {
+            // 直接插入新工作流（不再检查是否已存在）
+            $insert_id = $this->user_workflows_model->insert($data);
+
+            if (!$insert_id) {
+                throw new \Exception('Failed to insert workflow');
+            }
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Workflow added successfully',
+                'data' => [
+                    'user_workflow_id' => $insert_id
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Failed to add workflow: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Failed to add workflow: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function index()
+    {
+        // 获取当前用户的所有工作流
+        $user_workflows = $this->user_workflows_model->get_list($this->user_id,null,true);
+
+        $data = [
+            "title" => $this->config['name'],
+            "desc" => $this->config['desc'],
+            "config" => $this->config,
+            "content" => view('Core\Bulk_post\Views\user_workflows', [
+                "config" => $this->config,
+                "user_workflows" => $user_workflows,
+            ])
+        ];
+
+        return view('Core\Bulk_post\Views\index', $data);
+    }
+
+    public function update_workflow()
+    {
+        // 验证用户身份
+        $user_id = $this->user_id;
+        if (empty($user_id)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'User not authenticated'
+            ]);
+        }
+
+        // 获取表单数据
+        $workflow_id = post('workflow_id');
+        $accounts = post("accounts");
+        $title = post('title');
+        $description = post('description');
+        $category = post('category');
+        $tags = post('tags');
+
+        // 验证必填字段
+        if (empty($workflow_id)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Workflow ID is required'
+            ]);
+        }
+
+        try {
+            // 使用builder确保类型安全
+            $builder = $this->user_workflows_model->builder();
+
+            // 检查工作流是否存在且属于当前用户
+            $workflow = $builder->where('user_id', $user_id)
+                ->where('user_workflow_id', $workflow_id)
+                ->get()
+                ->getRowArray();  // 明确指定返回数组
+
+            if (empty($workflow)) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Workflow not found or you do not have permission'
+                ]);
+            }
+
+            // 准备更新数据
+            $updateData = [
+                'title' => $title ?? $workflow['title'],
+                'descript' => $description ?? $workflow['descript'],
+                'category' => $category ?? $workflow['category'],
+                'tags' => $tags ?? $workflow['tags'],
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+
+            // 处理账户数据
+            if (!empty($accounts)) {
+                // 确保accounts是数组
+                $accountsArray = is_array($accounts) ? $accounts : [$accounts];
+                $updateData['accounts'] = json_encode($accountsArray);
+            } else {
+                // 如果没有提供accounts，保持原值
+                $updateData['accounts'] = $workflow['accounts'];
+            }
+
+            // 执行更新
+            $builder->where('user_workflow_id', $workflow['user_workflow_id'])
+                ->set($updateData)
+                ->update();
+
+            // 获取受影响的行数 - 正确的方式
+            $affectedRows = $this->user_workflows_model->db->affectedRows();
+            if ($affectedRows === 0) {
+                // 如果没有行被更新，可能是数据没有变化
+                return $this->response->setJSON([
+                    'status' => 'success',
+                    'message' => 'No changes detected',
+                    'data' => $workflow
+                ]);
+            }
+            // 获取更新后的工作流数据
+            $updatedWorkflow = $builder->where('user_workflow_id', $workflow_id)
+                ->get()
+                ->getRowArray();
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Workflow updated successfully',
+                'data' => $updatedWorkflow
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Failed to update workflow: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Failed to update workflow: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function update_setting() {
+        // 获取当前用户ID
+        $user_id = $this->user_id;
+        if (!$user_id) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        // 获取POST数据
+        $workflow_id = $this->request->getPost('workflow_id');
+        $workflow_name = $this->request->getPost('workflow_name');
+        $status = $this->request->getPost('status');
+        $schedule_json = $this->request->getPost('schedule');
+
+        // 基本验证
+        if (empty($workflow_id) || empty($workflow_name)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Required fields are missing'
+            ], 400);
+        }
+
+        // 解析调度数据
+        $schedule = json_decode($schedule_json, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Invalid schedule data'
+            ], 400);
+        }
+
+        // 准备更新数据
+        $update_data = [
+            'workflow_name' => $workflow_name,
+            'is_enabled' => $status,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        // 处理调度数据
+        $schedule_type = 'none';
+        $schedule_time = null;
+        $schedule_days = null;
+        $schedule_date = null;
+        $next_run_at = null;
+
+        switch ($schedule['type']) {
+            case 'daily':
+                $schedule_type = 'daily';
+                $schedule_time = $schedule['time'] . ':00'; // 添加秒数
+                // 计算下次运行时间（今天或明天同一时间）
+                $next_run_at = $this->calculateNextRunTime('daily', null, $schedule['time']);
+                break;
+
+            case 'weekly':
+                $schedule_type = 'weekly';
+                $schedule_time = $schedule['time'] . ':00';
+                $schedule_days = implode(',', $schedule['days']);
+                // 计算下次运行时间（下一个选定的日期）
+                $next_run_at = $this->calculateNextRunTime('weekly', $schedule['days'], $schedule['time']);
+                break;
+
+            case 'once':
+                $schedule_type = 'once';
+                $schedule_date = date('Y-m-d H:i:s', strtotime($schedule['datetime']));
+                $next_run_at = $schedule_date; // 一次性任务的下次运行时间就是预定时间
+                break;
+        }
+
+        // 添加调度数据到更新数组
+        $update_data['schedule_type'] = $schedule_type;
+        $update_data['schedule_time'] = $schedule_time;
+        $update_data['schedule_days'] = $schedule_days;
+        $update_data['schedule_date'] = $schedule_date;
+        $update_data['next_run_at'] = $next_run_at;
+
+        // 更新数据库
+        $db = db_connect();
+        $builder = $db->table('sp_user_workflows');
+        $builder->where('user_workflow_id', $workflow_id)
+            ->where('user_id', $user_id);
+
+        $result = $builder->update($update_data);
+
+        if ($result) {
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Workflow settings updated successfully'
+            ]);
+        } else {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Failed to update workflow settings'
+            ], 500);
+        }
+    }
+
+    /**
+     * 计算下次运行时间
+     */
+    private function calculateNextRunTime($type, $days = null, $time = null) {
+        if ($type === 'none') {
+            return null;
+        }
+
+        $now = new \DateTime('now', new \DateTimeZone('Asia/Shanghai'));
+        $next_run = clone $now;
+
+        switch ($type) {
+            case 'daily':
+                list($hour, $minute) = explode(':', $time);
+                $next_run->setTime($hour, $minute, 0);
+
+                // 如果今天这个时间已经过了，就设置为明天
+                if ($next_run <= $now) {
+                    $next_run->modify('+1 day');
+                }
+                break;
+
+            case 'weekly':
+                list($hour, $minute) = explode(':', $time);
+                $current_day = $now->format('N'); // 1-7 (Monday-Sunday)
+                $next_day = null;
+
+                // 找出下一个要运行的工作日
+                foreach ($days as $day) {
+                    $day = (int)$day;
+                    if ($day > $current_day) {
+                        $next_day = $day;
+                        break;
+                    }
+                }
+
+                // 如果本周没有更多的工作日，就选下周的第一个工作日
+                if ($next_day === null) {
+                    $next_day = min($days);
+                    $next_run->modify('+' . (7 - $current_day + $next_day) . ' days');
+                } else {
+                    $next_run->modify('+' . ($next_day - $current_day) . ' days');
+                }
+
+                $next_run->setTime($hour, $minute, 0);
+                break;
+
+            case 'once':
+                // 已经在主方法中处理
+                break;
+        }
+
+        return $next_run->format('Y-m-d H:i:s');
+    }
+
+    public function delete_user_workflow()
+    {
+        // 获取当前用户ID
+        $user_id = get_user("id");
+        if (empty($user_id)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'User not authenticated'
+            ]);
+        }
+
+        // 获取要删除的工作流ID
+        $user_workflow_id = post('user_workflow_id');
+        if (empty($user_workflow_id)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Workflow ID is required'
+            ]);
+        }
+
+        try {
+            // 方法1：使用 builder 确保类型
+            $builder = $this->user_workflows_model->builder();
+            $workflow = $builder->where('user_id', $user_id)
+                ->where('user_workflow_id', $user_workflow_id)
+                ->get(1)
+                ->getRowArray();
+
+            if (empty($workflow)) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Workflow not found or you do not have permission'
+                ]);
+            }
+
+            // 删除工作流
+            $deleted = $this->user_workflows_model->delete($user_workflow_id);
+
+            if (!$deleted) {
+                throw new \Exception('Failed to delete workflow');
+            }
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Workflow deleted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Failed to delete workflow: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Failed to delete workflow: ' . $e->getMessage()
+            ]);
+        }
     }
     
     public function index1( $page = false ) {

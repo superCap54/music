@@ -55,7 +55,7 @@ class Account_manager extends \CodeIgniter\Controller
     {
         $clientId = $this->config['clientId'];
         $clientSecret = $this->config['clientSecret'];
-        $redirectUri = 'http://localhost/account_manager/google_callback'; // 替换为你的实际域名
+        $redirectUri = get_module_url().'/google_callback'; // 替换为你的实际域名
 
         try {
             // 初始化Google客户端
@@ -95,7 +95,7 @@ class Account_manager extends \CodeIgniter\Controller
         $code = $this->request->getGet('code');
 
         // 代理配置
-        $proxy = '207.244.217.165:6712';
+        $proxy = '38.154.227.167:5868';
         $proxyAuth = 'iggndszq:iguhz2og7m4t';
 
         // 获取访问令牌
