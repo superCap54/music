@@ -135,7 +135,7 @@ class Musicdata extends \CodeIgniter\Controller
     {
         // 1. 计算账单周期截止月份（当前月份减2个月）
         $cutoffDate = new \DateTime('first day of this month');
-        $cutoffDate->modify('-2 months');
+//        $cutoffDate->modify('-2 months');
 
         // 2. 生成12个月的月份列表（从截止月份往前推11个月）
         $months = [];
