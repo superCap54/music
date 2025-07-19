@@ -215,12 +215,6 @@
         color: var(--success);
     }
 
-    .empty-state {
-        padding: 40px 20px;
-        text-align: center;
-        color: var(--gray);
-    }
-
     .empty-state i {
         font-size: 48px;
         margin-bottom: 16px;
@@ -405,6 +399,77 @@
         outline: none;
         background: none;
     }
+
+    .config-fields h4 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: var(--dark);
+    }
+    /* Widget 样式 */
+    .widget-container {
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .widget-authorized, .widget-unauthorized {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 8px;
+        background-color: var(--gray-light);
+    }
+
+    .widget-unauthorized {
+        background-color: #FFEBEE;
+        border: 1px solid #EF9A9A;
+    }
+
+    .widget-icon {
+        margin-right: 12px;
+        font-size: 24px;
+    }
+
+    .widget-content {
+        flex: 1;
+    }
+
+    .widget-title {
+        font-weight: 500;
+        color: var(--dark);
+        margin-bottom: 4px;
+    }
+
+    .widget-description {
+        font-size: 13px;
+        color: var(--gray);
+    }
+
+    .widget-status {
+        margin-left: 12px;
+    }
+
+    .status-badge {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-active {
+        background-color: var(--success);
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .connect-btn {
+        margin-left: 12px;
+        white-space: nowrap;
+    }
 </style>
 <div class="container">
     <div class="workflows-container">
@@ -449,7 +514,9 @@
                         data-schedule-type="<?php echo $workflow['schedule_type']; ?>"
                         data-schedule-time="<?php echo $workflow['schedule_time']; ?>"
                         data-schedule-days="<?php echo $workflow['schedule_days']; ?>"
-                        data-schedule-date="<?php echo $workflow['schedule_date']; ?>">
+                        data-schedule-date="<?php echo $workflow['schedule_date']; ?>"
+                        data-config-schema="<?php echo htmlspecialchars($workflow['config_schema'] ?? '[]'); ?>"
+                        data-auth-google="<?php echo $is_auth_google_drive; ?>">
                 <td>
                     <div class="workflow-name"><?php _ec($workflow['workflow_name']); ?></div>
                 </td>
@@ -519,10 +586,6 @@
         </div>
 
         <div class="modal-body">
-            <div class="space-y-4">
-                <?php echo view_cell('\Core\Account_manager\Controllers\Account_manager::widget', ["account_id" => false, "module_permission" => "%s_post"]) ?>
-            </div>
-
             <div class="form-section">
                 <div class="form-group">
                     <label>Title</label>
@@ -562,6 +625,10 @@
                     <small class="hint-text">Press Enter or Space to add new hashtags</small>
                 </div>
             </div>
+            <div class="space-y-4">
+                <?php echo view_cell('\Core\Account_manager\Controllers\Account_manager::widget', ["account_id" => false, "module_permission" => "%s_post"]) ?>
+            </div>
+
         </div>
 
         <div class="modal-footer">
@@ -686,7 +753,11 @@
                 const description = currentEditingRow.dataset.description || '';
                 const category = currentEditingRow.dataset.category || '0';
                 const tags = currentEditingRow.dataset.tags || '';
-                const accounts = currentEditingRow.dataset.accounts || '[]'; // 获取accounts数据
+                const accounts = currentEditingRow.dataset.accounts || '[]';
+
+                // 获取配置schema
+                const configSchema = JSON.parse(currentEditingRow.dataset.configSchema || '[]');
+                const isAuthGoogleDrive = currentEditingRow.dataset.authGoogle || '0';
 
                 // 填充模态框表单
                 document.getElementById('modalTitle').textContent = `Edit Workflow: ${workflowName}`;
@@ -699,37 +770,149 @@
                     hashtagsInput.textContent = tags;
                 }
 
+                // 动态生成配置表单
+                const configContainer = document.createElement('div');
+                configContainer.className = 'form-section config-fields';
+
+                // 清空现有的配置字段（如果有）
+                const existingConfigContainer = document.querySelector('.config-fields');
+                if (existingConfigContainer) {
+                    existingConfigContainer.remove();
+                }
+
+                // 生成每个配置字段
+                configSchema.forEach(field => {
+                    const fieldGroup = document.createElement('div');
+                    fieldGroup.className = 'form-group';
+
+                    const label = document.createElement('label');
+                    label.textContent = field.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    fieldGroup.appendChild(label);
+
+                    // 处理不同类型的字段
+                    switch(field.type) {
+                        case 'text':
+                            const textInput = document.createElement('input');
+                            textInput.type = 'text';
+                            textInput.className = 'form-input';
+                            textInput.name = field.name;
+                            textInput.value = field.value || '';
+                            textInput.placeholder = field.placeholder || '';
+                            fieldGroup.appendChild(textInput);
+                            break;
+
+                        case 'select':
+                            const select = document.createElement('select');
+                            select.className = 'form-select';
+                            select.name = field.name;
+
+                            // 添加选项
+                            if (field.options && Array.isArray(field.options)) {
+                                field.options.forEach(option => {
+                                    const optionElement = document.createElement('option');
+                                    optionElement.value = option.value;
+                                    optionElement.textContent = option.label;
+                                    if (option.value === field.value) {
+                                        optionElement.selected = true;
+                                    }
+                                    select.appendChild(optionElement);
+                                });
+                            }
+                            fieldGroup.appendChild(select);
+                            break;
+
+                        case 'widget':
+                            console.log("field.name:"+field.name)
+                            if (field.name == "google_drive"){
+                            const widgetDiv = document.createElement('div');
+                            widgetDiv.className = 'widget-container';
+
+                            if (isAuthGoogleDrive != '0') {
+                                // 已授权的情况
+                                widgetDiv.innerHTML = `
+            <div class="widget-authorized">
+                <div class="widget-icon">
+                    <i class="ri-google-fill" style="color: #4285F4;"></i>
+                </div>
+                <div class="widget-content">
+                    <div class="widget-title">Google Drive Connected</div>
+                    <div class="widget-description">Your account is connected and ready to use</div>
+                </div>
+                <div class="widget-status">
+                    <span class="status-badge status-active"></span>
+                </div>
+            </div>
+        `;
+                            } else {
+                                // 未授权的情况
+                                widgetDiv.innerHTML = `
+            <div class="widget-unauthorized">
+                <div class="widget-icon">
+                    <i class="ri-google-fill" style="color: #EA4335;"></i>
+                </div>
+                <div class="widget-content">
+                    <div class="widget-title">Connect Google Drive</div>
+                    <div class="widget-description">You need to connect your Google account to use this feature</div>
+                </div>
+                <button class="btn btn-sm btn-primary connect-btn">
+                    Connect Account
+                </button>
+            </div>
+        `;
+
+                                // 添加点击事件
+                                widgetDiv.querySelector('.connect-btn').addEventListener('click', function() {
+                                    window.location.href = '/account_manager/index';
+                                });
+                            }
+
+                            fieldGroup.appendChild(widgetDiv);
+                            }
+                            break;
+
+                        default:
+                            // 默认处理为文本输入
+                            const defaultInput = document.createElement('input');
+                            defaultInput.type = 'text';
+                            defaultInput.className = 'form-input';
+                            defaultInput.name = field.name;
+                            defaultInput.value = field.value || '';
+                            fieldGroup.appendChild(defaultInput);
+                    }
+
+                    configContainer.appendChild(fieldGroup);
+                });
+
+                // 将配置表单插入到账户选择器下方
+                const accountWidget = document.querySelector('.space-y-4');
+                if (accountWidget) {
+                    accountWidget.insertAdjacentElement('afterend', configContainer);
+                }
+
                 // 显示模态框
                 modal.style.display = 'flex';
 
-                // 自动选中账户逻辑
+                // 自动选中账户逻辑保持不变
                 try {
-                    // 解析accounts JSON数据
                     const accountIds = JSON.parse(accounts);
-                    // 先取消所有已选中的checkbox
                     document.querySelectorAll('input[name="accounts[]"]').forEach(checkbox => {
                         checkbox.checked = false;
                     });
-                    // 移除所有已选项目
                     document.querySelectorAll('div.am-selected-box div.am-selected-list div.am-selected-item').forEach(item => {
                         item.remove();
                     });
-                    // 显示空状态提示
                     const emptyElement = document.querySelector('div.am-selected-box div.am-selected-list div.am-selected-empty');
                     if (emptyElement) {
                         emptyElement.style.display = 'block';
                     }
-                    // 选中匹配的账户
                     if (Array.isArray(accountIds) && accountIds.length > 0) {
                         accountIds.forEach(accountId => {
                             const checkbox = document.querySelector(`input[name="accounts[]"][value="${accountId}"]`);
                             if (checkbox) {
-                                // 向上查找label元素
                                 let parent = checkbox.parentElement;
                                 while (parent && parent.tagName !== 'LABEL' && parent !== document.body) {
                                     parent = parent.parentElement;
                                 }
-                                // 如果找到label，模拟点击它
                                 if (parent && parent.tagName === 'LABEL') {
                                     parent.click();
                                 }
@@ -801,6 +984,7 @@
         });
 
         // 保存按钮点击事件
+        // 保存按钮点击事件
         saveBtn.addEventListener('click', function() {
             if (!currentEditingRow) {
                 alert('No workflow selected for editing');
@@ -813,6 +997,7 @@
             const description = document.getElementById('workflowDescription').value;
             const category = document.getElementById('workflowCategory').value;
             const tags = hashtagsInput ? hashtagsInput.textContent : '';
+            const isAuthGoogleDrive = currentEditingRow.dataset.authGoogle || '0'; // 获取Google Drive授权状态
 
             // 获取所有选中的checkbox值
             const selectedAccounts = [];
@@ -820,18 +1005,37 @@
                 selectedAccounts.push(checkbox.value);
             });
 
+            // 收集配置字段的值
+            const configValues = {};
+            const configFields = document.querySelectorAll('.config-fields input, .config-fields select');
+            configFields.forEach(field => {
+                configValues[field.name] = field.value;
+            });
+            // 添加widget类型的值
+            const configSchema = JSON.parse(currentEditingRow.dataset.configSchema || '[]');
+            configSchema.forEach(field => {
+                if (field.type === 'widget') {
+                    // 对于google_drive widget，我们使用从data-auth-google获取的值
+                    if (field.name === 'google_drive') {
+                        configValues[field.name] = isAuthGoogleDrive;
+                    }
+                    // 可以添加其他widget类型的处理
+                }
+            });
+
             // 显示加载状态
             const originalHTML = this.innerHTML;
             this.innerHTML = '<i class="ri-loader-4-line animate-spin"></i>';
             this.disabled = true;
 
-            // 创建FormData对象，更适合文件上传和常规表单提交
+            // 创建FormData对象
             const formData = new FormData();
             formData.append('workflow_id', workflowId);
             formData.append('title', title);
             formData.append('description', description);
             formData.append('category', category);
             formData.append('tags', tags);
+            formData.append('config_values', JSON.stringify(configValues));
 
             // 添加所有选中的账户
             selectedAccounts.forEach((accountId, index) => {
@@ -844,7 +1048,7 @@
                 headers: {
                     'X-CSRF-TOKEN': '<?php echo csrf_token(); ?>'
                 },
-                body: formData  // 使用FormData而不是JSON
+                body: formData
             })
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
@@ -852,7 +1056,6 @@
                 })
                 .then(data => {
                     if (data.status === 'success') {
-                        // 直接重新加载页面
                         window.location.reload();
                     } else {
                         throw new Error(data.message || 'Failed to save workflow');
@@ -862,7 +1065,6 @@
                     showToast('Error: ' + error.message, 'error');
                 })
                 .finally(() => {
-                    // 恢复按钮状态
                     this.innerHTML = originalHTML;
                     this.disabled = false;
                 });
@@ -1022,7 +1224,6 @@
     });
 
     // 保存设置
-    // 保存设置
     saveSettingsBtn.addEventListener('click', function() {
         // 获取当前编辑的行
         const row = document.querySelector('tr[data-workflow-id]');
@@ -1144,37 +1345,7 @@
             })
             .then(data => {
                 if (data.status === 'success') {
-                    // 更新行中的数据
-                    row.querySelector('.workflow-name').textContent = workflowName;
-
-                    // 更新状态显示
-                    const statusBadge = row.querySelector('.status-badge');
-                    const statusText = row.querySelector('.workflow-status span:nth-child(2)');
-
-                    // 移除所有状态类
-                    statusBadge.classList.remove('status-active', 'status-paused', 'status-draft');
-
-                    // 添加新状态类
-                    switch(status) {
-                        case '2':
-                            statusBadge.classList.add('status-active');
-                            statusText.textContent = 'Active';
-                            break;
-                        case '1':
-                            statusBadge.classList.add('status-paused');
-                            statusText.textContent = 'Paused';
-                            break;
-                        case '0':
-                            statusBadge.classList.add('status-draft');
-                            statusText.textContent = 'Draft';
-                            break;
-                    }
-
-                    // 关闭模态框
-                    settingsModal.style.display = 'none';
-
-                    // 显示成功提示
-                    console.log('Settings saved successfully!', 'success');
+                    window.location.reload();
                 } else {
                     throw new Error(data.message || 'Failed to save settings');
                 }

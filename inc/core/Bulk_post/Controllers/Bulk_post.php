@@ -104,6 +104,9 @@ class Bulk_post extends \CodeIgniter\Controller
     {
         // 获取当前用户的所有工作流
         $user_workflows = $this->user_workflows_model->get_list($this->user_id,null,true);
+        //获取该用户是否绑定谷歌网盘
+        $google_drive_token = db_get('*', 'sp_google_drive_tokens', ['user_id' => $this->user_id]);
+        $is_auth_google_drive = empty($google_drive_token) ? 0 : $google_drive_token->id;
 
         $data = [
             "title" => $this->config['name'],
@@ -112,6 +115,7 @@ class Bulk_post extends \CodeIgniter\Controller
             "content" => view('Core\Bulk_post\Views\user_workflows', [
                 "config" => $this->config,
                 "user_workflows" => $user_workflows,
+                'is_auth_google_drive' => $is_auth_google_drive
             ])
         ];
 
@@ -136,6 +140,7 @@ class Bulk_post extends \CodeIgniter\Controller
         $description = post('description');
         $category = post('category');
         $tags = post('tags');
+        $config_values = post('config_values');
 
         // 验证必填字段
         if (empty($workflow_id)) {
@@ -168,6 +173,7 @@ class Bulk_post extends \CodeIgniter\Controller
                 'descript' => $description ?? $workflow['descript'],
                 'category' => $category ?? $workflow['category'],
                 'tags' => $tags ?? $workflow['tags'],
+                'custom_data' => $config_values ?? $workflow['custom_data'],
                 'updated_at' => date('Y-m-d H:i:s')
             ];
 

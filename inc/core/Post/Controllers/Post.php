@@ -81,6 +81,7 @@ class Post extends \CodeIgniter\Controller
     {
         $post_id = get("post_id");
         $team_id = get_team("id");
+        $user_id = get_user("id");
         $caption = get("caption");
 
         if ($caption != "") {
@@ -89,7 +90,7 @@ class Post extends \CodeIgniter\Controller
         }
 
         //先获取该用户是否绑定谷歌网盘
-        $googleDriveToken = db_get('*', 'sp_google_drive_tokens', ['user_id' => $team_id]);
+        $googleDriveToken = db_get('*', 'sp_google_drive_tokens', ['user_id' => $user_id]);
 
         if (!empty($googleDriveToken)) {
             // 刷新谷歌token
