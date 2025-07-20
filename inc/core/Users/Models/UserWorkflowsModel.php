@@ -1,5 +1,7 @@
 <?php
+
 namespace Core\Users\Models;
+
 use CodeIgniter\Model;
 
 class UserWorkflowsModel extends Model
@@ -33,8 +35,9 @@ class UserWorkflowsModel extends Model
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
 
-    public function __construct(){
-        $this->config = parse_config( include realpath( __DIR__."/../Config.php" ) );
+    public function __construct()
+    {
+        $this->config = parse_config(include realpath(__DIR__ . "/../Config.php"));
     }
 
     public function get_list($user_id, $workflow_id = null, $get_workflows_detail = false)
@@ -61,7 +64,7 @@ class UserWorkflowsModel extends Model
             // 处理结果，确保返回格式一致
             if ($get_workflows_detail) {
                 // 合并两个表的数据，避免字段冲突
-                return array_map(function($item) {
+                return array_map(function ($item) {
                     $workflow_data = [];
                     $user_workflow_data = [];
 
@@ -86,4 +89,43 @@ class UserWorkflowsModel extends Model
         }
     }
 
+
+    public function lock_workflow($id)
+    {
+        $this->builder()
+            ->where('user_workflow_id', $id)
+            ->update(['is_processing' => 1]);
+    }
+
+    public function unlock_workflow($id)
+    {
+        $this->builder()
+            ->where('user_workflow_id', $id)
+            ->update(['is_processing' => 0]);
+    }
+
+    public function update_workflow_after_run($id, $nextRun)
+    {
+        $data = [
+            'last_run_at' => date('Y-m-d H:i:s'),
+            'next_run_at' => $nextRun,
+            'is_processing' => 0
+        ];
+
+        $this->builder()
+            ->where('user_workflow_id', $id)
+            ->update($data);
+    }
+
+    public function get_due_workflows()
+    {
+        $now = date('Y-m-d H:i:s');
+
+        return $this->builder()
+            ->where('is_enabled', 2) // 已启用
+            ->where('next_run_at <=', $now) // 下次执行时间已到
+            ->where('is_processing', 0) // 未在处理中
+            ->get()
+            ->getResult();
+    }
 }

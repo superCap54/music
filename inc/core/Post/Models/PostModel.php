@@ -122,9 +122,9 @@ class PostModel extends Model
 		);
     }
 
-    public function post( $posts, $social_can_post = false ){
-    	$team_id = get_team("id");
-    	$post_by = post("post_by");
+    public function post( $posts, $social_can_post = false ,$team_id = null,$post_by = null ){
+    	$team_id = empty($team_id) ? get_team("id") : $team_id;
+    	$post_by = empty($post_by) ? post("post_by") : $post_by;
     	$models = $this->post_models("post_handler");
 
     	$post_id = 0;

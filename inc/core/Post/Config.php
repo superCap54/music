@@ -23,10 +23,10 @@ return [
         "Assets/plugins/selectator/fm.selectator.jquery.css",
         "Assets/css/post.css"
     ],
-    'cron' => [
-        'name' => 'Composer',
-        'uri' => 'post/cron',
-        'style' => '* * * * *',
-    ],
+//    'cron' => [
+//        'name' => 'Composer',
+//        'uri' => 'post/cron',
+//        'style' => '* * * * *',
+//    ],
     'hidden'=>false
 ];

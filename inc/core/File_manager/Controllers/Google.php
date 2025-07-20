@@ -115,7 +115,7 @@ class Google extends \CodeIgniter\Controller
             }
 
             // 2. 获取当前用户的访问令牌
-            $userId = get_team("id");
+            $userId = get_user("id");
             $db = \Config\Database::connect();
             $builder = $db->table('sp_google_drive_tokens');
 
@@ -180,18 +180,145 @@ class Google extends \CodeIgniter\Controller
         }
     }
 
+    public function get_mp4_file($accessToken)
+    {
+        try {
+            // 3. 初始化Google Drive服务
+            $client = new \Google\Client();
+            $client->setAccessToken(['access_token' => $accessToken]);
+            $drive = new \Google\Service\Drive($client);
+
+            // 4. 设置代理
+            $proxy = '38.154.227.167:5868';
+            $proxyAuth = 'iggndszq:iguhz2og7m4t';
+            $httpClient = new \GuzzleHttp\Client([
+                'proxy' => [
+                    'http' => "socks5://{$proxyAuth}@{$proxy}",
+                    'https' => "socks5://{$proxyAuth}@{$proxy}",
+                ],
+                'verify' => false // 如果需要忽略SSL验证
+            ]);
+            $client->setHttpClient($httpClient);
+
+            // 5. 查询MP4文件
+            $query = "mimeType='video/mp4' and trashed=false";
+            $optParams = [
+                'fields' => 'files(id,name,size,mimeType,modifiedTime,webViewLink,thumbnailLink)',
+                'pageSize' => 1,
+                'q' => $query
+            ];
+
+            $results = $drive->files->listFiles($optParams);
+            $files = $results->getFiles();
+
+            // 6. 格式化返回数据
+            //因为只要1条，所以就返回一个一维数组就好了
+            $formattedFile = [];
+            foreach ($files as $file) {
+                $formattedFile = [
+                    'id' => $file->getId(),
+                    'name' => $file->getName(),
+                    'size' => $file->getSize(),
+                    'mimeType' => $file->getMimeType(),
+                    'modifiedTime' => $file->getModifiedTime(),
+                    'webViewLink' => $file->getWebViewLink(),
+                    'thumbnailLink' => $file->getThumbnailLink(),
+                    'source' => 'google_drive'
+                ];
+            }
+            return $formattedFile;
+
+        } catch (\Exception $e) {
+            log_message('error', 'Google Drive MP4 files fetch failed: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function refresh_token_from_user($userId)
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('sp_google_drive_tokens');
+
+        $tokenData = $builder->where('user_id', $userId)
+            ->get()
+            ->getRowArray();
+
+        if (empty($tokenData) || empty($tokenData['refresh_token'])) {
+            throw new \Exception('No Google Drive refresh token found for this user');
+        }
+        // 2. 检查 Token 是否已过期（或即将过期）
+        $currentTime = time();
+        $expiresAt = $tokenData['expires_in'] ?? 0;
+
+        // 如果 Token 未过期（且剩余时间 > 10 分钟），直接返回
+        if ($expiresAt > $currentTime + 600) {
+            return [
+                'status' => 'success',
+                'message' => 'Token is still valid',
+                'expires_at' => date('Y-m-d H:i:s', $expiresAt),
+                'access_token' => $tokenData['access_token'],
+            ];
+        }
+        $refreshToken = $tokenData['refresh_token'];
+
+        // 3. 初始化Google客户端
+        $client = new \Google\Client();
+        $client->setClientId($this->config['clientId']);
+        $client->setClientSecret($this->config['clientSecret']);
+        $client->setAccessType('offline');
+        $client->setApprovalPrompt('force');
+
+        // 设置代理
+        $proxy = '38.154.227.167:5868';
+        $proxyAuth = 'iggndszq:iguhz2og7m4t';
+        $httpClient = new \GuzzleHttp\Client([
+            'proxy' => [
+                'http' => "socks5://{$proxyAuth}@{$proxy}",
+                'https' => "socks5://{$proxyAuth}@{$proxy}",
+            ],
+            'verify' => false // 如果需要忽略SSL验证
+        ]);
+        $client->setHttpClient($httpClient);
+
+        try {
+            // 从数据库或缓存获取refresh token
+            $client->refreshToken($refreshToken);
+            $newAccessToken = $client->getAccessToken();
+
+// 5. 更新数据库中的token信息
+            $expiresIn = time() + $newAccessToken['expires_in'];
+            $updateData = [
+                'access_token' => $newAccessToken['access_token'],
+                'expires_in' => $expiresIn,
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+            $builder->where('user_id', $userId)
+                ->update($updateData);
+
+            return [
+                'status' => 'success',
+                'message' => 'Token is valid',
+                'expires_at' => date('Y-m-d H:i:s', $expiresIn),
+                'access_token' => $newAccessToken['access_token'],
+            ];
+        } catch (\Exception $e) {
+            log_message('error', 'Google token refresh failed: ' . $e->getMessage());
+            throw $e; // 重新抛出异常让调用方处理
+        }
+    }
+
     /**
      * 下载Google Drive文件
      */
-    public function download_file($file_id, $destination_path) {
+    public function download_file($file_id, $destination_path,$accessToken = null) {
+        if(empty($accessToken)) {
             // 1. 刷新访问令牌
             $tokenStatus = $this->refresh_token();
-
             if ($tokenStatus['status'] != 'success') {
                 throw new \Exception('Failed to refresh Google access token');
             }
             $accessToken = $tokenStatus['access_token'];
-
+        }
             // 2. 代理配置
             $proxy = '38.154.227.167:5868';
             $proxyAuth = 'iggndszq:iguhz2og7m4t';

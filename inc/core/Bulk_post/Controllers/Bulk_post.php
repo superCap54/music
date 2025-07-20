@@ -1,6 +1,8 @@
 <?php
 namespace Core\Bulk_post\Controllers;
 
+use function JBZoo\Data\json;
+
 class Bulk_post extends \CodeIgniter\Controller
 {
     public function __construct(){
@@ -610,4 +612,196 @@ class Bulk_post extends \CodeIgniter\Controller
             "message" => sprintf(__(" You're scheduling %s posts to %s social accounts."), $post_success, count($list_accounts))
         ]);
     }
+
+    public function cron()
+    {
+        // 1. 获取需要执行的工作流 这里返回的是二维数组对象或者是空数组
+        $workflows = $this->user_workflows_model->get_due_workflows();
+
+        if (empty($workflows)) {
+            echo date('Y-m-d H:i:s') . " - 没有需要执行的工作流\n";
+            return;
+        }
+
+        foreach ($workflows as $workflow) {
+            try {
+                // 2. 锁定工作流（防止并发执行）
+                $this->user_workflows_model->lock_workflow($workflow->user_workflow_id);
+
+                // 3. 执行工作流
+                $this->execute_workflow($workflow);
+
+                // 4. 计算下次执行时间
+                $nextRun = $this->calculateNextRunTime(
+                    $workflow->schedule_type,
+                    $workflow->schedule_days ? explode(',', $workflow->schedule_days) : null,
+                    $workflow->schedule_time
+                );
+
+                // 5. 更新工作流状态
+                $this->user_workflows_model->update_workflow_after_run(
+                    $workflow->user_workflow_id,
+                    $nextRun
+                );
+
+                echo date('Y-m-d H:i:s') . " - 成功执行工作流: {$workflow->workflow_name}\n";
+            } catch (\Exception $e) {
+                // 6. 错误处理
+                log_message('error', "工作流执行失败: {$workflow->user_workflow_id} - " . $e->getMessage());
+                $this->user_workflows_model->unlock_workflow($workflow->user_workflow_id);
+                echo date('Y-m-d H:i:s') . " - 工作流执行失败: {$workflow->workflow_name} - " . $e->getMessage() . "\n";
+            }
+        }
+    }
+
+
+    private function execute_workflow($workflow)
+    {
+        //workflow里面的accounts存的是空字符串或者空数组或者是一维数组。这里存的是YouTube的ID
+        //workflow里面的custom_data存的是工作流额外需要用到的数据
+        //先获取这个workflow是否是从网盘获取文件自动发布的逻辑代码
+        $custom_data = json_decode($workflow->custom_data,true);
+        $user_id = $workflow->user_id;
+        $team_id = $workflow->team_id;
+        $accounts = json_decode($workflow->accounts,true);
+
+        $list_data = [];
+        $this->post_model = new \Core\Post\Models\PostModel();
+
+        //这是Google Drive自动发的逻辑
+        if (isset($custom_data['google_drive']) && !empty($custom_data['google_drive'])) {
+            //1.先刷新GoogleDrive的Token
+            $google_drive_id = $custom_data['google_drive'];
+            $googleDriveToken = db_get('*', 'sp_google_drive_tokens', ['id' => $google_drive_id]);
+            if (!empty($googleDriveToken)) {
+                // 刷新谷歌token
+                $google = new \Core\File_manager\Controllers\Google();
+                $accessTokenArr = $google->refresh_token_from_user($user_id);
+                $accessToken = $accessTokenArr['access_token'];
+                //2.获取这个用户的谷歌网盘MP4文件
+                $result = $google->get_mp4_file($accessToken);
+                //3. 走下载链接
+                $file_names = $this->generateRandomFilename("mp4");
+                // 从URL中提取文件ID
+                $file_id = $result['id'];
+                // 下载文件到临时目录
+                $temp_file = WRITEPATH . 'uploads/' . uniqid() . '_' . $file_names;
+                if (!empty($user_id)) {
+                    $data = [
+                        'access_token' => $accessToken,
+                        'result' => $result,
+                        'file_id' => $file_id,
+                        'file_names' => $file_names,
+                        'temp_file' => $temp_file,
+                    ];
+                }
+                $google->download_file($file_id, $temp_file,$accessToken);
+                $medias[] = str_replace(WRITEPATH, "", $temp_file);
+                // 记录需要删除的临时文件
+                $temp_files_to_delete[] = $temp_file;
+                // 准备上传到YouTube的数据
+                $type = "media";
+
+                $advance_options = [
+                    'fb_post_type' => 'default',
+                    'fb_story_link' => '',
+                    'ig_post_type' => 'media',
+                    'ig_first_comment' => '',
+                    'youtube_title' => $workflow->title,
+                    'youtube_category' => $workflow->category,
+                    'youtube_tags' => $workflow->tags,
+                ];
+                $postData = [
+                    "caption" => $workflow->descript,
+                    "link" => '',
+                    "medias" => $medias,
+                    "advance_options" => $advance_options,
+                ];
+                $data = [
+                    "team_id" => $team_id,
+                    "function" => "post",
+                    "type" => $type,
+                    "data" => json_encode($postData),
+                    "time_post" => date('d-m-Y H:i'),
+                    "delay" => 5,
+                    "repost_frequency" => 0,
+                    "repost_until" => date('d-m-Y H:i'),
+                    "result" => "",
+                    "status" => 1,
+                    "changed" => time(),
+                    "created" => time(),
+                ];
+                $list_accounts = $this->account_manager_model->get_accounts_by($accounts, "ids", 1, $team_id, true);
+                foreach ($list_accounts as $key => $value) {
+                    $ids = post("ids") ? post("ids") : ids();
+                    $data['ids'] = $ids;
+                    $data['account_id'] = $value->id;
+                    $data['social_network'] = $value->social_network;
+                    $data['category'] = $value->category;
+                    $data['api_type'] = $value->login_type;
+                    $data['proxy_info'] = $value->proxy_info;
+                    $list_data[] = (object)$data;
+                }
+                $validator = $this->post_model->validator($list_data);
+                $social_can_post = json_decode($validator["can_post"]);
+                if (!empty($social_can_post) || $validator["status"] == "success") {
+                    $this->post_model->post($list_data, $social_can_post,$team_id,1);
+                    $this->deleteTempFiles($temp_files_to_delete);
+                }
+            }
+        }
+        return ['status' => 'success', 'message' => 'Workflow executed'];
+    }
+
+    function generateRandomFilename($extension = '')
+    {
+        $prefix = bin2hex(random_bytes(4)); // 8字符随机前缀
+        $filename = uniqid($prefix . '_', true); // 生成唯一ID
+        $filename = str_replace('.', '', $filename); // 移除uniqid中的点
+
+        if (!empty($extension)) {
+            $filename .= '.' . ltrim($extension, '.');
+        }
+
+        return $filename;
+    }
+
+    private function extractGoogleDriveFileId($url)
+    {
+        $patterns = [
+            '/\/file\/d\/([^\/]+)/',
+            '/id=([^&]+)/',
+            '/([A-Za-z0-9_-]{25,})/'
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $url, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * 删除临时文件
+     * @param array $files 要删除的文件路径数组
+     */
+    private function deleteTempFiles(array $files)
+    {
+        if (empty($files)) {
+            return true;
+        }
+        foreach ($files as $file) {
+            if (file_exists($file)) {
+                try {
+                    unlink($file);
+                } catch (\Exception $e) {
+                    log_message('error', 'Failed to delete temp file: ' . $file . ' - ' . $e->getMessage());
+                }
+            }
+        }
+    }
+
 }

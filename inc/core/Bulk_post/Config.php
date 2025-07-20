@@ -15,5 +15,10 @@ return [
         'position' => 1500,
         'name' => 'Bulk post'
     ],
+    'cron' => [
+        'name' => 'Bulk post',
+        'uri' => 'bulk_post/cron',
+        'style' => '* * * * *',
+    ],
     'hidden' => false,
 ];
