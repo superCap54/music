@@ -15,6 +15,7 @@ class Bulk_post extends \CodeIgniter\Controller
 
         //获取当前用户id
         $this->user_id = get_user("id");
+        $this->team_id = get_team('id');
     }
 
     public function add_widget()
@@ -42,6 +43,7 @@ class Bulk_post extends \CodeIgniter\Controller
                 'message' => 'User not authenticated'
             ]);
         }
+        $team_id = get_team("id");
 
         // 获取输入数据
         $workflow_id = post('workflow_id');
@@ -63,6 +65,7 @@ class Bulk_post extends \CodeIgniter\Controller
         // 准备插入数据
         $data = [
             'user_id' => $this->user_id,
+            'team_id' => $team_id,
             'workflow_id' => $workflow_id,
             'workflow_name' => $workflow_name,
             'accounts' => '',
@@ -380,7 +383,7 @@ class Bulk_post extends \CodeIgniter\Controller
     public function delete_user_workflow()
     {
         // 获取当前用户ID
-        $user_id = get_user("id");
+        $user_id = $this->user_id;
         if (empty($user_id)) {
             return $this->response->setJSON([
                 'status' => 'error',
@@ -629,7 +632,7 @@ class Bulk_post extends \CodeIgniter\Controller
                 $this->user_workflows_model->lock_workflow($workflow->user_workflow_id);
 
                 // 3. 执行工作流
-                $this->execute_workflow($workflow);
+                $result = $this->execute_workflow($workflow);
 
                 // 4. 计算下次执行时间
                 $nextRun = $this->calculateNextRunTime(
@@ -644,7 +647,11 @@ class Bulk_post extends \CodeIgniter\Controller
                     $nextRun
                 );
 
-                echo date('Y-m-d H:i:s') . " - 成功执行工作流: {$workflow->workflow_name}\n";
+                if ($result['status'] === 'completed') {
+                    echo date('Y-m-d H:i:s') . " - 工作流标记为已完成: {$workflow->workflow_name} ".$result['message']."\n";
+                } else {
+                    echo date('Y-m-d H:i:s') . " - 成功执行工作流: {$workflow->workflow_name}\n";
+                }
             } catch (\Exception $e) {
                 // 6. 错误处理
                 log_message('error', "工作流执行失败: {$workflow->user_workflow_id} - " . $e->getMessage());
@@ -664,11 +671,17 @@ class Bulk_post extends \CodeIgniter\Controller
         $user_id = $workflow->user_id;
         $team_id = $workflow->team_id;
         $accounts = json_decode($workflow->accounts,true);
+        if (empty($accounts)) {
+            return [
+                'status' => 'completed',
+                'message' => 'Accounts Is Empty'
+            ];
+        }
 
         $list_data = [];
         $this->post_model = new \Core\Post\Models\PostModel();
 
-        //这是Google Drive自动发的逻辑
+        //这是Google Drive自动发的逻辑,如果google drive配置了，并且绑定了YouTube账号才会进入
         if (isset($custom_data['google_drive']) && !empty($custom_data['google_drive'])) {
             //1.先刷新GoogleDrive的Token
             $google_drive_id = $custom_data['google_drive'];
@@ -680,6 +693,13 @@ class Bulk_post extends \CodeIgniter\Controller
                 $accessToken = $accessTokenArr['access_token'];
                 //2.获取这个用户的谷歌网盘MP4文件
                 $result = $google->get_mp4_file($accessToken);
+                //如果网盘是空的 直接return结束就好了
+                if (empty($result)){
+                    return [
+                        'status' => 'completed',
+                        'message' => 'Google Drive is empty'
+                    ];
+                }
                 //3. 走下载链接
                 $file_names = $this->generateRandomFilename("mp4");
                 // 从URL中提取文件ID
@@ -746,8 +766,18 @@ class Bulk_post extends \CodeIgniter\Controller
                 $social_can_post = json_decode($validator["can_post"]);
                 if (!empty($social_can_post) || $validator["status"] == "success") {
                     $this->post_model->post($list_data, $social_can_post,$team_id,1);
+                    try {
+                        $google->delete_file($file_id, $accessToken);
+                    } catch (\Exception $e) {
+                        log_message('error', 'Failed to delete Google Drive file: ' . $e->getMessage());
+                    }
                     $this->deleteTempFiles($temp_files_to_delete);
                 }
+            }else{
+                return [
+                    'status' => 'completed',
+                    'message' => 'Google Drive is Not Connnected'
+                ];
             }
         }
         return ['status' => 'success', 'message' => 'Workflow executed'];
@@ -803,5 +833,4 @@ class Bulk_post extends \CodeIgniter\Controller
             }
         }
     }
-
 }

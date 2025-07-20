@@ -545,9 +545,6 @@
                         <button class="action-btn settings" title="Settings">
                             <i class="ri-settings-3-line"></i>
                         </button>
-                        <button class="action-btn run" title="Run Now">
-                            <i class="ri-play-line"></i>
-                        </button>
                         <button class="action-btn delete" title="Delete">
                             <i class="ri-delete-bin-line"></i>
                         </button>

@@ -17,7 +17,8 @@ class Google extends \CodeIgniter\Controller
         // 使用配置中的clientId和clientSecret
         $this->client->setClientId($this->config['clientId']);
         $this->client->setClientSecret($this->config['clientSecret']);
-        $this->client->addScope(Drive::DRIVE_READONLY);
+        // 修改为读写权限
+        $this->client->addScope(Drive::DRIVE);
         $this->client->setAccessType('offline');
         $this->client->setPrompt('consent');
     }
@@ -265,6 +266,7 @@ class Google extends \CodeIgniter\Controller
         $client = new \Google\Client();
         $client->setClientId($this->config['clientId']);
         $client->setClientSecret($this->config['clientSecret']);
+        $client->addScope(Drive::DRIVE);
         $client->setAccessType('offline');
         $client->setApprovalPrompt('force');
 
@@ -364,6 +366,46 @@ class Google extends \CodeIgniter\Controller
             }
 
             return true;
+    }
 
+    /**
+     * 删除Google Drive文件
+     */
+    public function delete_file($file_id, $accessToken = null)
+    {
+        try {
+            if (empty($accessToken)) {
+                $tokenStatus = $this->refresh_token();
+                if ($tokenStatus['status'] != 'success') {
+                    throw new \Exception('Failed to refresh Google access token');
+                }
+                $accessToken = $tokenStatus['access_token'];
+            }
+
+            // 初始化Google Drive服务
+            $client = new \Google\Client();
+            $client->setAccessToken(['access_token' => $accessToken]);
+            $drive = new \Google\Service\Drive($client);
+
+            // 设置代理
+            $proxy = '38.154.227.167:5868';
+            $proxyAuth = 'iggndszq:iguhz2og7m4t';
+            $httpClient = new \GuzzleHttp\Client([
+                'proxy' => [
+                    'http' => "socks5://{$proxyAuth}@{$proxy}",
+                    'https' => "socks5://{$proxyAuth}@{$proxy}",
+                ],
+                'verify' => false
+            ]);
+            $client->setHttpClient($httpClient);
+
+            // 删除文件
+            $drive->files->delete($file_id);
+
+            return true;
+        } catch (\Exception $e) {
+            log_message('error', 'Google Drive file deletion failed: ' . $e->getMessage());
+            return false;
+        }
     }
 }

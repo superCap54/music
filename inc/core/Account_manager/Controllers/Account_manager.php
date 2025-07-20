@@ -63,7 +63,7 @@ class Account_manager extends \CodeIgniter\Controller
             $client->setClientId($clientId);
             $client->setClientSecret($clientSecret);
             $client->setRedirectUri($redirectUri);
-            $client->addScope(\Google\Service\Drive::DRIVE_READONLY);
+            $client->addScope(\Google\Service\Drive::DRIVE);
             $client->setAccessType('offline'); // 必须设置为offline才能获取refresh token
             $client->setPrompt('consent'); // 强制每次请求都获取新的refresh token
             $client->setIncludeGrantedScopes(true);

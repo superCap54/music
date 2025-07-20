@@ -12,6 +12,7 @@ class UserWorkflowsModel extends Model
     // 指定允许批量赋值的字段
     protected $allowedFields = [
         'user_id',
+        'team_id',
         'workflow_id',
         'workflow_name',
         'title',
