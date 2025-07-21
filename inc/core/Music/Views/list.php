@@ -1,9 +1,7 @@
 <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
 <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center">
-        <div class="bd-search position-relative me-auto">
-            <h1><i class="<?php _e( $config['icon'] )?>" style="color: <?php _e( $config['color'] )?>;"></i> <?php _e( $config['name'] )?></h1>
-        </div>
         <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#importModal">
             <i class="fas fa-file-import me-2"></i><?php _e("Import Music")?>
         </button>
@@ -18,6 +16,25 @@
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
         <?php foreach ($music_list as $item): ?>
         <div style="box-shadow: 5px 5px 5px rgba(0,0,0,0.05)" class="group relative bg-[rgba(245,245,245,0.8)] backdrop-blur-sm border border-[rgba(255,255,255,0.05)] rounded-lg overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:border-[rgba(0,180,255,0.2)] hover:shadow-[0_0_15px_rgba(0,180,255,0.2)]">
+            <?php if (!empty($item['is_bound'])): ?>
+            <div class="absolute top-3 right-3 z-10">
+                <div class="flex items-center space-x-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm font-medium shadow-sm">
+                    <div class="flex items-center justify-center" style="width: 0.75rem;height: 0.75rem;">
+                        <i class="ri-check-line text-sm"></i>
+                    </div>
+                    <span>Licensed</span>
+                </div>
+            </div>
+            <?php else: ?>
+            <div class="absolute top-3 right-3 z-10">
+                <div class="flex items-center space-x-1 bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-sm font-medium shadow-sm">
+                    <div class="flex items-center justify-center" style="width: 0.75rem;height: 0.75rem;">
+                        <i class="ri-subtract-line text-sm"></i>
+                    </div>
+                    <span>Not Licensed</span>
+                </div>
+            </div>
+            <?php endif; ?>
             <div class="relative aspect-square">
                 <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[rgba(0,0,0,0.8)] z-10"></div>
                 <img src="<?php echo $item['cover_url']; ?>" class="w-full h-full object-cover" alt="<?php echo $item['title']; ?>">
@@ -28,19 +45,20 @@
                 </a>
             </div>
             <div class="" style="padding: 1rem;">
-                <h4 class="font-medium mb-1" style="font-size: medium;"><?php echo $item['title']; ?></h4>
-                <h5>Artist：<?php echo $item['artist']; ?></h5>
-                <p class="text-gray-400 text-sm">isrc:<?php echo $item['isrc']; ?></p>
-                <p class="text-gray-400 text-sm">upc:<?php echo $item['upc']; ?></p>
-                <div class="flex justify-between items-center">
-                    <div class="flex gap-2">
-                        <a href="<?php echo $item['file_src']; ?>" download="<?php echo $item['title']; ?>" class="bg-primary hover:bg-opacity-90 text-sm px-4 py-1.5 rounded-button flex items-center whitespace-nowrap text-white">
-                            Download
-                        </a>
-                        <button onclick="deleteMusic('<?php echo $item['id']; ?>', '<?php echo $item['title']; ?>')" class="bg-red-500 hover:bg-opacity-90 text-sm px-4 py-1.5 rounded-button flex items-center whitespace-nowrap text-white">
-                            Delete
-                        </button>
-                    </div>
+                <h4 class="font-medium mb-1" style="font-size: 20px; font-weight: bold;"><?php echo $item['title']; ?></h4>
+                <p class="mb-1" style="font-size: 16px;"><?php echo $item['artist']; ?></p>
+                <p class="text-gray-400 text-sm mb-1">isrc:<?php echo $item['isrc']; ?></p>
+                <div class="flex items-center justify-between text-sm text-gray-400 mb-1">
+                    <span><?php echo $item['formatted_duration']; ?></span>
+                    <span><?php echo $item['genre']; ?></span>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                    <a href="<?php echo $item['file_src']; ?>" download="<?php echo $item['title']; ?>" class="bg-primary hover:bg-opacity-90 text-sm px-4 py-1.5 rounded-button flex items-center whitespace-nowrap text-white">
+                        Download
+                    </a>
+                    <button onclick="deleteMusic('<?php echo $item['id']; ?>', '<?php echo $item['title']; ?>')" class="bg-red-500 hover:bg-opacity-90 text-sm px-4 py-1.5 rounded-button flex items-center whitespace-nowrap text-white">
+                        Delete
+                    </button>
                 </div>
             </div>
         </div>

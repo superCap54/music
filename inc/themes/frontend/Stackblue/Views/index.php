@@ -282,7 +282,7 @@
 <header class="bg-[#1a1a1a] fixed w-full z-50">
     <div class="container mx-auto px-6 py-4 flex items-center justify-between">
         <a href="/">
-            <img alt="Logo" src="<?php _ec( get_option("website_logo_color", base_url("assets/img/logo-color.svg")) )?>" class="logo-big" style="height: 40px;">
+            <img alt="Logo" src="<?php _ec( get_option("website_logo_color", base_url("assets/img/logo-color.svg")) )?>" class="logo-big" style="height: 45px;">
         </a>
         <nav class="hidden md:flex items-center space-x-8">
             <a href="#features" class="text-gray-300 hover:text-white transition-colors">Features</a>

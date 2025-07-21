@@ -578,7 +578,7 @@
     <?php } ?>
     <div class="mb-8">
         <div class="mb-8 flex justify-between items-center">
-            <h2 class="text-2xl font-medium"><?php echo _e('Songs Library'); ?></h2>
+            <h2 class="text-2xl font-medium"><?php echo _e('Licensed Songs'); ?></h2>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
             <?php if (!empty($songsList)): ?>

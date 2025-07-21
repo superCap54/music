@@ -116,12 +116,16 @@ class MusicModel extends \CodeIgniter\Model
     public function getMusicList($limit = 30, $offset = 0)
     {
         return $this->builder()
-            ->select('*')
-            ->where('status', 1)
+            ->select('sp_music_library.*, 
+                 TIME_FORMAT(SEC_TO_TIME(duration), "%i:%s") AS formatted_duration,
+                 IF(COUNT(sp_user_music_licenses.music_id) > 0, 1, 0) AS is_bound')
+            ->join('sp_user_music_licenses', 'sp_user_music_licenses.music_id = sp_music_library.id', 'left')
+            ->where('sp_music_library.status', 1)
+            ->groupBy('sp_music_library.id')  // 确保按音乐ID分组
             ->orderBy('title', 'ASC')
             ->limit($limit, $offset)
             ->get()
-            ->getResultArray(); // 明确使用getResultArray()
+            ->getResultArray();
     }
 
     // 在 MusicModel 类中添加

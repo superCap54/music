@@ -1,19 +1,19 @@
 <?php
 return [
     'platform' => 1,
-    'id' => 'music',
+    'id' => 'MusicLib',
     'folder' => 'core',
-    'name' => 'Music',
+    'name' => 'Music Library',
     'author' => 'Stackcode',
     'author_uri' => 'https://stackposts.com',
     'desc' => 'Customize system interface',
     'icon' => 'fad fa-music',
-    'color' => '#00cccb',
+    'color' => '#8a5599',
     'menu' => [
         'tab' => 3,
         'type' => 'top',
         'position' => 10000,
-        'name' => 'Import Music',
+        'name' => 'Free Music Hub',
     ],
     'hidden'=>false,
 ];
