@@ -618,39 +618,74 @@ class Bulk_post extends \CodeIgniter\Controller
 
     public function cron()
     {
-        // 1. 获取需要执行的工作流 这里返回的是二维数组对象或者是空数组
-        $workflows = $this->user_workflows_model->get_due_workflows();
+        // 在cron()方法开头添加
+        $this->user_workflows_model->cleanup_stale_workflows();
+        // 0. 设置无限执行时间（仅限CLI模式）
+        if (php_sapi_name() === 'cli') {
+            set_time_limit(0);
+        }
 
+        // 1. 获取需要执行的工作流 这里返回的是二维数组对象或者是空数组
+        $max_workflows_per_minute = 5; // 根据服务器性能调整
+        $workflows = $this->user_workflows_model->get_due_workflows($max_workflows_per_minute);
         if (empty($workflows)) {
             echo date('Y-m-d H:i:s') . " - 没有需要执行的工作流\n";
             return;
         }
 
+        $childProcesses = [];
+        $maxWaitTime = 45; // 设置最大等待时间（秒），确保小于cron间隔
+
         foreach ($workflows as $workflow) {
             try {
+                // 检查进程负载
+                if ($this->is_server_overloaded()) {
+                    echo "服务器负载过高，暂停处理新任务\n";
+                    break;
+                }
                 // 2. 锁定工作流（防止并发执行）
-                $this->user_workflows_model->lock_workflow($workflow->user_workflow_id);
+//                $this->user_workflows_model->lock_workflow($workflow->user_workflow_id);
 
                 // 3. 执行工作流
-                $result = $this->execute_workflow($workflow);
+//                $result = $this->execute_workflow_with_timeout($workflow);
 
                 // 4. 计算下次执行时间
-                $nextRun = $this->calculateNextRunTime(
-                    $workflow->schedule_type,
-                    $workflow->schedule_days ? explode(',', $workflow->schedule_days) : null,
-                    $workflow->schedule_time
-                );
+//                $nextRun = $this->calculateNextRunTime(
+//                    $workflow->schedule_type,
+//                    $workflow->schedule_days ? explode(',', $workflow->schedule_days) : null,
+//                    $workflow->schedule_time
+//                );
+//
+//                // 5. 更新工作流状态
+//                $this->user_workflows_model->update_workflow_after_run(
+//                    $workflow->user_workflow_id,
+//                    $nextRun
+//                );
 
-                // 5. 更新工作流状态
-                $this->user_workflows_model->update_workflow_after_run(
-                    $workflow->user_workflow_id,
-                    $nextRun
-                );
+//                if ($result['status'] === 'completed') {
+//                    echo date('Y-m-d H:i:s') . " - 工作流标记为已完成: {$workflow->workflow_name} ".$result['message']."\n";
+//                } else {
+//                    echo date('Y-m-d H:i:s') . " - 成功执行工作流: {$workflow->workflow_name}\n";
+//                }
 
-                if ($result['status'] === 'completed') {
-                    echo date('Y-m-d H:i:s') . " - 工作流标记为已完成: {$workflow->workflow_name} ".$result['message']."\n";
+                // 使用PCNTL处理超时问题
+                $pid = pcntl_fork();
+                if ($pid == -1) {
+                    throw new \Exception('无法创建子进程');
+                } elseif ($pid) {
+                    // 父进程记录子进程PID
+                    $childProcesses[] = $pid;
                 } else {
-                    echo date('Y-m-d H:i:s') . " - 成功执行工作流: {$workflow->workflow_name}\n";
+                    // 🔸 关键修改：创建守护进程
+                    $daemonPid = pcntl_fork();
+                    if ($daemonPid == -1) {
+                        exit(1); // 创建失败直接退出
+                    } elseif ($daemonPid) {
+                        exit(0); // 父进程(子进程)立即退出
+                    }
+                    // 🔸 守护进程(孙进程)执行实际任务
+                    $this->handle_child_process($workflow);
+                    exit(0);
                 }
             } catch (\Exception $e) {
                 // 6. 错误处理
@@ -659,11 +694,30 @@ class Bulk_post extends \CodeIgniter\Controller
                 echo date('Y-m-d H:i:s') . " - 工作流执行失败: {$workflow->workflow_name} - " . $e->getMessage() . "\n";
             }
         }
+        $startTime = time();
+        while (count($childProcesses) > 0) {
+            foreach ($childProcesses as $key => $pid) {
+                $res = pcntl_waitpid($pid, $status, WNOHANG);
+
+                if ($res == -1 || $res > 0) {
+                    // 进程已退出
+                    unset($childProcesses[$key]);
+                }
+            }
+
+            // 超时检查（避免阻塞下次cron）
+            if ((time() - $startTime) > $maxWaitTime) {
+                break;
+            }
+
+            usleep(100000); // 休眠100ms减少CPU占用
+        }
     }
 
 
     private function execute_workflow($workflow)
     {
+        $this->temp_files_to_delete = []; // 初始化临时文件数组
         //workflow里面的accounts存的是空字符串或者空数组或者是一维数组。这里存的是YouTube的ID
         //workflow里面的custom_data存的是工作流额外需要用到的数据
         //先获取这个workflow是否是从网盘获取文件自动发布的逻辑代码
@@ -718,7 +772,7 @@ class Bulk_post extends \CodeIgniter\Controller
                 $google->download_file($file_id, $temp_file,$accessToken);
                 $medias[] = str_replace(WRITEPATH, "", $temp_file);
                 // 记录需要删除的临时文件
-                $temp_files_to_delete[] = $temp_file;
+                $this->temp_files_to_delete[] = $temp_file; // 添加到清理列表
                 // 准备上传到YouTube的数据
                 $type = "media";
 
@@ -771,7 +825,6 @@ class Bulk_post extends \CodeIgniter\Controller
                     } catch (\Exception $e) {
                         log_message('error', 'Failed to delete Google Drive file: ' . $e->getMessage());
                     }
-                    $this->deleteTempFiles($temp_files_to_delete);
                 }
             }else{
                 return [
@@ -831,6 +884,177 @@ class Bulk_post extends \CodeIgniter\Controller
                     log_message('error', 'Failed to delete temp file: ' . $file . ' - ' . $e->getMessage());
                 }
             }
+        }
+    }
+    private function is_server_overloaded()
+    {
+        // 获取内存限制（带单位的字符串，如 "128M"）
+        $memory_limit_str = ini_get('memory_limit');
+
+        // 获取当前内存使用量（字节）
+        $used_memory = memory_get_usage(true);
+
+        // 将内存限制转换为字节
+        $memory_limit_bytes = $this->convert_memory_to_bytes($memory_limit_str);
+        // 检查是否超过85%限制
+        return $used_memory > ($memory_limit_bytes * 0.85);
+    }
+
+    /**
+     * 将带单位的内存字符串转换为字节数
+     */
+    private function convert_memory_to_bytes($memory_limit)
+    {
+        // 去除空格并获取单位
+        $unit = strtoupper(substr(trim($memory_limit), -1));
+        $number = (float)trim($memory_limit);
+
+        // 根据单位转换
+        switch ($unit) {
+            case 'G':
+                return $number * 1024 * 1024 * 1024;
+            case 'M':
+                return $number * 1024 * 1024;
+            case 'K':
+                return $number * 1024;
+            default: // 无单位的情况（直接返回字节数）
+                return $number;
+        }
+    }
+
+    private function execute_workflow_with_timeout($workflow)
+    {
+        // 使用PCNTL扩展（如果可用）
+        if (function_exists('pcntl_fork')) {
+            $pid = pcntl_fork();
+
+            if ($pid == -1) {
+                // Fork失败，回退到普通执行
+                $this->execute_workflow($workflow);
+            } elseif ($pid) {
+                // 父进程：等待子进程完成
+                $status = null;
+                pcntl_waitpid($pid, $status);
+            } else {
+                // 子进程：执行任务
+                $this->execute_workflow($workflow);
+                exit(0); // 子进程结束
+            }
+        } else {
+            // 没有PCNTL：使用简单超时保护
+            $start = time();
+            $this->execute_workflow($workflow);
+
+            // 记录执行时间用于监控
+            $duration = time() - $start;
+            if ($duration > 30) {
+                log_message('warning', "工作流 {$workflow->workflow_id} 执行超长: {$duration}秒");
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+    /**
+     * 子进程处理逻辑（解决数据库连接和文件清理问题）
+     */
+    private function handle_child_process($workflow)
+    {
+        try {
+            // 关闭父进程的数据库连接
+            $this->close_parent_db_connections();
+
+            // 重新初始化数据库连接
+            $this->reinitialize_db_connection();
+
+            // 锁定工作流（在子进程中锁定）
+            $this->user_workflows_model->lock_workflow($workflow->user_workflow_id);
+
+            // 执行工作流
+            $result = $this->execute_workflow($workflow);
+
+            // 计算下次执行时间
+            $nextRun = $this->calculateNextRunTime(
+                $workflow->schedule_type,
+                $workflow->schedule_days ? explode(',', $workflow->schedule_days) : null,
+                $workflow->schedule_time
+            );
+
+            // 更新工作流状态
+            $this->user_workflows_model->update_workflow_after_run(
+                $workflow->user_workflow_id,
+                $nextRun
+            );
+
+            if ($result['status'] === 'completed') {
+                echo date('Y-m-d H:i:s') . " - 工作流完成: {$workflow->workflow_name}\n";
+            }
+        } catch (\Exception $e) {
+            // 错误处理
+            log_message('error', "工作流执行失败: {$workflow->user_workflow_id} - " . $e->getMessage());
+
+            // 确保异常时解锁工作流
+            $this->user_workflows_model->unlock_workflow($workflow->user_workflow_id);
+        } finally {
+            // 确保临时文件被清理（即使发生异常）
+            $this->cleanup_temp_files();
+        }
+    }
+
+    /**
+     * 关闭父进程的数据库连接
+     */
+    private function close_parent_db_connections()
+    {
+        // 关闭CodeIgniter默认连接
+        if ($db = \Config\Database::connect()) {
+            $db->close();
+        }
+
+        // 关闭模型中可能存在的连接
+        $models = [
+            $this->post_model,
+            $this->account_manager_model,
+            $this->workflows_model,
+            $this->user_workflows_model
+        ];
+
+        foreach ($models as $model) {
+            if (property_exists($model, 'db') && $model->db instanceof \CodeIgniter\Database\BaseConnection) {
+                $model->db->close();
+            }
+        }
+    }
+
+    /**
+     * 重新初始化数据库连接
+     */
+    private function reinitialize_db_connection()
+    {
+        // 重新实例化模型
+        $this->post_model = new \Core\Post\Models\PostModel();
+        $this->account_manager_model = new \Core\Account_manager\Models\Account_managerModel();
+        $this->workflows_model = new \Core\Post\Models\WorkflowsModel();
+        $this->user_workflows_model = new \Core\Users\Models\UserWorkflowsModel();
+    }
+
+    /**
+     * 清理临时文件（解决文件残留问题）
+     */
+    private function cleanup_temp_files()
+    {
+        if (!empty($this->temp_files_to_delete)) {
+            foreach ($this->temp_files_to_delete as $file) {
+                if (file_exists($file)) {
+                    @unlink($file);
+                }
+            }
+            $this->temp_files_to_delete = [];
         }
     }
 }

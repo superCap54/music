@@ -95,6 +95,7 @@ class UserWorkflowsModel extends Model
     {
         $this->builder()
             ->where('user_workflow_id', $id)
+            ->where('is_processing', 0)
             ->update(['is_processing' => 1]);
     }
 
@@ -118,15 +119,29 @@ class UserWorkflowsModel extends Model
             ->update($data);
     }
 
-    public function get_due_workflows()
+    public function get_due_workflows($limit = 5)
     {
         $now = date('Y-m-d H:i:s');
 
-        return $this->builder()
-            ->where('is_enabled', 2) // 已启用
-            ->where('next_run_at <=', $now) // 下次执行时间已到
-            ->where('is_processing', 0) // 未在处理中
-            ->get()
-            ->getResult();
+        $builder = $this->builder();
+        $builder->select('*');
+        $builder->where('is_enabled', 2); // 启用状态
+        $builder->where('next_run_at <=', $now);
+        $builder->where('is_processing', 0); // 未在处理中
+        $builder->orderBy('next_run_at', 'ASC'); // 先处理最早到期任务
+        $builder->limit($limit); // 关键：限制每次处理数量
+
+        $query = $builder->get();
+        return $query->getResult();
+    }
+
+    // 在update_workflow_after_run()后添加新方法
+    public function cleanup_stale_workflows()
+    {
+        $timeout = date('Y-m-d H:i:s', time() - 3600); // 1小时未更新视为超时
+        $this->builder()
+            ->where('is_processing', 1)
+            ->where('updated_at <', $timeout)
+            ->update(['is_processing' => 0]);
     }
 }

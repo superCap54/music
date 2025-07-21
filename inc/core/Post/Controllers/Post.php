@@ -560,7 +560,7 @@ class Post extends \CodeIgniter\Controller
         // 1.获取用户授权的音乐列表
         $db = \Config\Database::connect();
         $builder = $db->table('sp_user_music_licenses as uml');
-        $builder->select('ml.*, uml.expiry_date as license_expiry_date');
+        $builder->select('ml.*, uml.expiry_date as license_expiry_date,uml.created_at');
         $builder->join('sp_music_library as ml', 'ml.id = uml.music_id');
         $builder->where('uml.user_id', $user_id);
         $builder->where('uml.expiry_date >', time()); // 只获取未过期的授权
@@ -579,7 +579,8 @@ class Post extends \CodeIgniter\Controller
                 'fileExtension' => pathinfo($music['file_src'] ?? '', PATHINFO_EXTENSION),
                 'duration' => $music['duration'],
                 'artist' => $music['artist'],
-                'license_expiry' => date('Y-m-d', strtotime($music['license_expiry_date']))
+                'license_expiry' => date('Y-m-d', strtotime($music['license_expiry_date'])),
+                'auth_date' => $music['created_at']
             ];
             $songsList[] = $songsItem;
             $songsIsrcList[$music['isrc']] = $songsItem;
@@ -617,14 +618,14 @@ class Post extends \CodeIgniter\Controller
         if (!empty($licensedIsrcs)) {
             $builder = $db->table('sp_music_royalties');
             $monthlyData = $builder->select([
-                'sale_month as month',
+                'reporting_date as month',
                 'SUM(quantity) as views',
                 'SUM(earnings_usd) as earnings'
             ])
                 ->whereIn('isrc', $licensedIsrcs)
                 ->whereIn('store',['YouTube (Ads)','YouTube (ContentID)','YouTube (Red)'])
-                ->groupBy('sale_month')
-                ->orderBy('sale_month', 'DESC') // 改为降序排列，最新的月份在前
+                ->groupBy('reporting_date')
+                ->orderBy('reporting_date', 'DESC') // 改为降序排列，最新的月份在前
                 ->limit(12) // 限制12条记录
                 ->get()
                 ->getResultArray();
@@ -671,7 +672,7 @@ class Post extends \CodeIgniter\Controller
 
         $songsDataList = [];
         if(!empty($licensedIsrcs)){
-            $sale_month = date('Y-m', strtotime('-2 months'));
+            $report_month = date('Y-m');
             $builder = $db->table('sp_music_royalties a');
             // 选择需要的字段
             $builder->select([
@@ -691,14 +692,14 @@ class Post extends \CodeIgniter\Controller
 
             // 使用whereIn确保查询多个ISRC
             $builder->whereIn('a.isrc', $licensedIsrcs);
-            $builder->where('a.sale_month', $sale_month);  // 主查询限制月份
+            $builder->where('a.reporting_date', $report_month);  // 主查询限制月份
             $builder->whereIn('a.store',['YouTube (Ads)','YouTube (ContentID)','YouTube (Red)']);
 
             // 按ISRC和月份分组
-            $builder->groupBy('a.isrc', 'a.sale_month', 'a.title');
+            $builder->groupBy('a.isrc', 'a.reporting_date', 'a.title');
 
             // 按月份降序排列
-            $builder->orderBy('a.sale_month', 'DESC');
+            $builder->orderBy('a.reporting_date', 'DESC');
 
             // 获取所有结果
             $results = $builder->get()->getResultArray();
