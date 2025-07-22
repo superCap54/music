@@ -4,7 +4,9 @@ namespace Core\Dashboard\Controllers;
 class Dashboard extends \CodeIgniter\Controller
 {
     public function __construct(){
+        echo 1;
         $this->config = parse_config( include realpath( __DIR__."/../Config.php" ) );
+        echo 2;exit;
     }
 
     public function index( $page = false ) {
